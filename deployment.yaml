@@ -1,0 +1,27 @@
+metadata:
+  name: "aft-deploy-configuration"
+  region: "us-east-1"
+
+deploymentConfiguration:
+  createTerraformStateBucket: true
+  terraformStateBucketName: "aft-account-deployment-bucket-1cf9dbaa"
+
+controlTowerVariables:
+  controlTowerManagementAccountId: "000000000000"
+  logArchiveAccountId: "000000000000"
+  auditAccountId: "000000000000"
+  aftManagementAccountId: "000000000000"
+  controlTowerHomeRegion: "us-east-1"
+  terraformBackendSecondaryRegion: "sa-east-1"
+
+terraformConfiguration:
+  terraformVersion: "1.5.6"
+  terraformDistribution: "oss"
+
+vcsConfiguration:
+  vcsProvider: "codecommit"
+
+aftConfiguration:
+  aftFeatureCloudtrailDataEvents: true
+  aftFeatureEnterpriseSupport: true
+  aftFeatureDeleteDefaultVpcsEnabled: true

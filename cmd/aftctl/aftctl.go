@@ -12,6 +12,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/edgarsilva948/aftctl/cmd/completion"
+	"github.com/edgarsilva948/aftctl/cmd/deploy"
+	"github.com/edgarsilva948/aftctl/cmd/docs"
+	"github.com/edgarsilva948/aftctl/cmd/version"
 
 	"github.com/edgarsilva948/aftctl/pkg/arguments"
 	"github.com/edgarsilva948/aftctl/pkg/color"
@@ -33,6 +36,9 @@ func init() {
 
 	// Register the subcommands:
 	root.AddCommand(completion.Cmd)
+	root.AddCommand(docs.Cmd)
+	root.AddCommand(version.Cmd)
+	root.AddCommand(deploy.Cmd)
 }
 
 func main() {
