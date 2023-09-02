@@ -1,0 +1,7 @@
+.vscode/
+
+aftctl
+aftctl64.exe
+
+.envrc
+.env
