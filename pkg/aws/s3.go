@@ -5,27 +5,25 @@ Copyright © 2023 Edgar Costa edgarsilva948@gmail.com
 package aws
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-
-	"github.com/zgalor/weberr"
 )
 
-func BucketExists(bucketName string, region string) (bool, error) {
-
-	// new aws session
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(region),
-	})
-
-	svc := s3.New(sess)
+// BucketExists checks if a given S3 bucket exists.
+func BucketExists(client S3Client, bucketName string, region string) (bool, error) {
+	// Check if the client is nil
+	if client == nil {
+		return false, fmt.Errorf("S3Client is not provided")
+	}
 
 	input := &s3.ListBucketsInput{}
 
-	output, err := svc.ListBuckets(input)
+	output, err := client.ListBuckets(input)
 	if err != nil {
-		return false, weberr.Wrapf(err, "Failed to list S3 buckets")
+		return false, fmt.Errorf("failed to list S3 buckets: %w", err)
 	}
 
 	for _, bucket := range output.Buckets {
@@ -37,6 +35,7 @@ func BucketExists(bucketName string, region string) (bool, error) {
 	return false, nil
 }
 
+// CreateS3Bucket creates a new S3 bucket with the given name.
 func CreateS3Bucket(bucketName string, kmsKeyID string, region string) error {
 	// new aws session
 	sess, err := session.NewSession(&aws.Config{

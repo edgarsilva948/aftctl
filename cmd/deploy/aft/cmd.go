@@ -5,10 +5,12 @@ Copyright © 2023 Edgar Costa edgarsilva948@gmail.com
 package aft
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -18,94 +20,19 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// Regions supported by AWS Control Tower
-const (
-	// ilCentral1 represents Israel (Tel Aviv)
-	ilCentral1 = "il-central-1"
-
-	// afSouth1 represents Africa (Cape Town)
-	afSouth1 = "af-south-1"
-
-	// apEast1 represents Asia Pacific (Hong Kong)
-	apEast1 = "ap-east-1"
-
-	// apNortheast3 represents Asia Pacific (Osaka)
-	apNortheast3 = "ap-northeast-3"
-
-	// apSoutheast3 represents Asia Pacific (Jakarta)
-	apSoutheast3 = "ap-southeast-3"
-
-	// euSouth1 represents Europe (Milan)
-	euSouth1 = "eu-south-1"
-
-	// meSouth1 represents Middle East (Bahrain)
-	meSouth1 = "me-south-1"
-
-	// usWest1 represents US West (N. California)
-	usWest1 = "us-west-1"
-
-	// usGovEast1 represents AWS GovCloud (US-East)
-	usGovEast1 = "us-gov-east-1"
-
-	// usGovWest1 represents AWS GovCloud (US-West)
-	usGovWest1 = "us-gov-west-1"
-
-	// euWest3 represents Europe (Paris)
-	euWest3 = "eu-west-3"
-
-	// saEast1 represents South America (Sao Paulo)
-	saEast1 = "sa-east-1"
-
-	// apNortheast1 represents Asia Pacific (Tokyo)
-	apNortheast1 = "ap-northeast-1"
-
-	// apNortheast2 represents Asia Pacific (Seoul)
-	apNortheast2 = "ap-northeast-2"
-
-	// apSouth1 represents Asia Pacific (Mumbai)
-	apSouth1 = "ap-south-1"
-
-	// apSoutheast1 represents Asia Pacific (Singapore)
-	apSoutheast1 = "ap-southeast-1"
-
-	// caCentral1 represents Canada (Central)
-	caCentral1 = "ca-central-1"
-
-	// euCentral1 represents Europe (Frankfurt)
-	euCentral1 = "eu-central-1"
-
-	// euNorth1 represents Europe (Stockholm)
-	euNorth1 = "eu-north-1"
-
-	// euWest2 represents Europe (London)
-	euWest2 = "eu-west-2"
-
-	// apSoutheast2 represents Asia Pacific (Sydney)
-	apSoutheast2 = "ap-southeast-2"
-
-	// usEast1 represents US East (N. Virginia)
-	usEast1 = "us-east-1"
-
-	// usWest2 represents US West (Oregon)
-	usWest2 = "us-west-2"
-
-	// euWest1 represents Europe (Ireland)
-	euWest1 = "eu-west-1"
-
-	// usEast2 represents US East (Ohio)
-	usEast2 = "us-east-2"
-)
-
+// Metadata holds the basic information.
 type Metadata struct {
 	Name string
 }
 
+// DeploymentConfiguration holds the terraform aditional resources
 type DeploymentConfiguration struct {
 	CreateTerraformStateBucket *bool  `yaml:"createTerraformStateBucket"`
 	TerraformStateBucketName   string `yaml:"terraformStateBucketName"`
 	TerraformStateBucketPath   string `yaml:"terraformStateBucketPath"`
 }
 
+// ControlTowerVariables holds the CT deployment information
 type ControlTowerVariables struct {
 	CTManagementAccountID    string `yaml:"controlTowerManagementAccountId"`
 	LogArchiveAccountID      string `yaml:"logArchiveAccountId"`
@@ -115,28 +42,32 @@ type ControlTowerVariables struct {
 	TFBackendSecondaryRegion string `yaml:"terraformBackendSecondaryRegion"`
 }
 
+// TerraformConfiguration holds the TF deployment information
 type TerraformConfiguration struct {
 	TerraformVersion      string `yaml:"terraformVersion"`
 	TerraformDistribution string `yaml:"terraformDistribution"`
 }
 
+// VcsConfiguration holds the VCS deployment information
 type VcsConfiguration struct {
 	VcsProvider string `yaml:"vcsProvider"`
 }
 
-type AftConfiguration struct {
+// Configuration holds the settings for the AFT deployment.
+type Configuration struct {
 	AftFeatureCloudtrailDataEvents     bool `yaml:"aftFeatureCloudtrailDataEvents"`
 	AftFeatureEnterpriseSupport        bool `yaml:"aftFeatureEnterpriseSupport"`
 	AftFeatureDeleteDefaultVpcsEnabled bool `yaml:"aftFeatureDeleteDefaultVpcsEnabled"`
 }
 
+// Config holds the full settings for the AFT deployment.
 type Config struct {
 	Metadata                Metadata
 	DeploymentConfiguration DeploymentConfiguration `yaml:"deploymentConfiguration"`
 	ControlTowerVariables   ControlTowerVariables   `yaml:"controlTowerVariables"`
 	TerraformConfiguration  TerraformConfiguration  `yaml:"terraformConfiguration"`
 	VcsConfiguration        VcsConfiguration        `yaml:"vcsConfiguration"`
-	AftConfiguration        AftConfiguration        `yaml:"aftConfiguration"`
+	Configuration           Configuration           `yaml:"aftConfiguration"`
 }
 
 var args struct {
@@ -158,34 +89,7 @@ var args struct {
 	terraformStateBucketPath   string
 }
 
-var validRegions = []string{
-	ilCentral1,
-	afSouth1,
-	apEast1,
-	apNortheast3,
-	apSoutheast3,
-	euSouth1,
-	meSouth1,
-	usWest1,
-	usGovEast1,
-	usGovWest1,
-	euWest3,
-	saEast1,
-	apNortheast1,
-	apNortheast2,
-	apSouth1,
-	apSoutheast1,
-	caCentral1,
-	euCentral1,
-	euNorth1,
-	euWest2,
-	apSoutheast2,
-	usEast1,
-	usWest2,
-	euWest1,
-	usEast2,
-}
-
+// Cmd is the exported command for the AFT deployment.
 var Cmd = &cobra.Command{
 	Use:   "aft",
 	Short: "Setup AFT in AFT-Management Account",
@@ -254,18 +158,18 @@ func init() {
 		"",
 		"Path to save the state file inside the terraform state bucket",
 	)
-
-	// flags.StringVar(
-	// 	&args.controlTowerManagementAccountId,
-	// 	"controltower-management-account-id",
-	// 	"",
-	// 	"The Management Account ID that will be used during the deployment process.",
-	// )
 }
 
 var config Config
 
 func run(cmd *cobra.Command, _ []string) {
+
+	cfg := aws.Config{
+		Region: "us-east-1",
+	}
+	aws.InitAWSClient(cfg)
+
+	s3Client := aws.NewS3Client()
 
 	isValidName := regexp.MustCompile(`^[a-zA-Z0-9-]+$`).MatchString
 	isValidBucketName := regexp.MustCompile(`^[a-zA-Z0-9-]+$`).MatchString
@@ -357,7 +261,7 @@ func run(cmd *cobra.Command, _ []string) {
 
 		// Bucket Name: informed correctly (file) and the Create Bucket Option is true
 		if isValidBucketName(config.DeploymentConfiguration.TerraformStateBucketName) && *config.DeploymentConfiguration.CreateTerraformStateBucket {
-			createStateBucketInAftAccount(config.DeploymentConfiguration.TerraformStateBucketName)
+			CreateStateBucketInAftAccount(s3Client, config.DeploymentConfiguration.TerraformStateBucketName)
 		}
 
 	} else {
@@ -400,7 +304,7 @@ func run(cmd *cobra.Command, _ []string) {
 		// Bucket Name: informed correctly (flag) and the Create Bucket Option is true
 		if isValidBucketName(args.terraformStateBucketName) && args.createTerraformStateBucket {
 			config.DeploymentConfiguration.TerraformStateBucketName = args.terraformStateBucketName
-			createStateBucketInAftAccount(args.terraformStateBucketName)
+			CreateStateBucketInAftAccount(s3Client, args.terraformStateBucketName)
 		}
 
 		//
@@ -410,27 +314,71 @@ func run(cmd *cobra.Command, _ []string) {
 	}
 }
 
-// Functions
-func createStateBucketInAftAccount(bucketName string) {
+// CreateStateBucketInAftAccount creates a state bucket in the AFT account.
+func CreateStateBucketInAftAccount(client aws.S3Client, bucketName string) (bool, error) {
 
-	exists, err := aws.BucketExists(bucketName, "us-east-1")
+	isBucketNameValid, err := checkBucketName(bucketName)
+	if !isBucketNameValid {
+		return false, err
+	}
+
+	isBucketReady, err := checkBucketStatus(client, bucketName)
+	if !isBucketReady {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func checkBucketName(bucketName string) (bool, error) {
+	length := len(bucketName)
+
+	// Bucket names must be between 3 (min) and 63 (max) characters long.
+	if length < 3 || length > 63 {
+		return false, errors.New("bucket name must be between 3 and 63 characters long")
+	}
+
+	//Bucket names must not start with the prefix xn--.
+	// Bucket names must not start with the prefix sthree- and the prefix sthree-configurator.
+	if strings.HasPrefix(bucketName, "xn--") || strings.HasPrefix(bucketName, "sthree-") {
+		return false, errors.New("bucket name cannot start with restricted prefixes (xn-- or sthree-)")
+	}
+
+	// Bucket names must not end with the suffix -s3alias. This suffix is reserved for access point alias names. For more information, see Using a bucket-style alias for your S3 bucket access point.
+	// Bucket names must not end with the suffix --ol-s3. This suffix is reserved for Object Lambda Access Point alias names. For more information, see How to use a bucket-style alias for your S3 bucket Object Lambda Access Point.
+	if strings.HasSuffix(bucketName, "-s3alias") || strings.HasSuffix(bucketName, "--ol-s3") {
+		return false, errors.New("bucket name cannot end with restricted suffixes (-s3alias or --ol-s3)")
+	}
+
+	// Bucket names can consist only of lowercase letters, numbers, and hyphens (-).
+	pattern := `^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`
+	re := regexp.MustCompile(pattern)
+	if !re.MatchString(bucketName) {
+		return false, errors.New("bucket name can only consist of lowercase letters, numbers, and hyphens, and must begin and end with a letter or number")
+	}
+
+	// Additional check to make sure bucket names don't have two adjacent periods.
+	if strings.Contains(bucketName, "..") {
+		return false, errors.New("bucket name must not contain two adjacent periods")
+	}
+
+	// Check for IP address format (which is not allowed)
+	ipPattern := `^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$`
+	ipRe := regexp.MustCompile(ipPattern)
+	if ipRe.MatchString(bucketName) {
+		return false, errors.New("bucket name must not be formatted as an IP address")
+	}
+
+	return true, nil
+}
+
+func checkBucketStatus(client aws.S3Client, bucketName string) (bool, error) {
+	exists, err := aws.BucketExists(client, bucketName, "us-east-1")
 	if err != nil {
-		fmt.Println("Error checking if bucket exists:", err)
-		return
+		return false, fmt.Errorf("error checking if bucket exists: %w", err)
 	}
-
 	if exists {
-		log.Fatalf("Error: The bucket named '%s' already exists. To use an existing bucket, please set the 'createTerraformStateBucket' or 'create-terraform-state-bucket' configuration to 'false'.", bucketName)
-	} else {
-
-		exampleKms := ""
-
-		fmt.Printf("Bucket %s does not exist, creating", bucketName)
-		err := aws.CreateS3Bucket(bucketName, exampleKms, "us-east-1")
-		if err != nil {
-			fmt.Printf("Error while creating the bucket: %s\n", err)
-		} else {
-			fmt.Println("Successfully created the bucket")
-		}
+		return false, fmt.Errorf("error: The bucket named '%s' already exists", bucketName)
 	}
+	return true, nil
 }
