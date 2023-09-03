@@ -1,0 +1,6 @@
+- test the config.Metadata.Name arg
+- test the config.DeploymentConfiguration.TerraformStateBucketName arg
+- test the config.DeploymentConfiguration.CreateTerraformStateBucket arg
+- test the config.DeploymentConfiguration.TerraformStateBucketPath arg
+
+- create validations for TerraformStateBucketPath

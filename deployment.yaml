@@ -1,10 +1,10 @@
 metadata:
-  name: "aft-deploy-configuration"
-  region: "us-east-1"
+  name: "batata"
 
 deploymentConfiguration:
   createTerraformStateBucket: true
-  terraformStateBucketName: "aft-account-deployment-bucket-1cf9dbaa"
+  terraformStateBucketName: ""
+  terraformStateBucketPath: ""
 
 controlTowerVariables:
   controlTowerManagementAccountId: "000000000000"

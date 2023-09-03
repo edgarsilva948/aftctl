@@ -1,7 +1,3 @@
-/*
-Copyright © 2023 Edgar Costa edgarsilva948@gmail.com
-*/
-
 // This file contains functions used to implement the '--region' command line option.
 
 package region
