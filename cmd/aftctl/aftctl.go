@@ -16,7 +16,6 @@ import (
 	"github.com/edgarsilva948/aftctl/cmd/docs"
 	"github.com/edgarsilva948/aftctl/cmd/version"
 
-	"github.com/edgarsilva948/aftctl/pkg/arguments"
 	"github.com/edgarsilva948/aftctl/pkg/color"
 )
 
@@ -30,9 +29,7 @@ var root = &cobra.Command{
 
 func init() {
 	// Add the command line flags:
-	fs := root.PersistentFlags()
 	color.AddFlag(root)
-	arguments.AddDebugFlag(fs)
 
 	// Register the subcommands:
 	root.AddCommand(completion.Cmd)

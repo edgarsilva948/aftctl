@@ -26,7 +26,7 @@ coverage:
 
 .PHONY: install
 install:
-	go install ./cmd/rosa
+	go install ./cmd/aftctl
 
 .PHONY: fmt
 fmt:
