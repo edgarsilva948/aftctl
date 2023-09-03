@@ -7,7 +7,8 @@ package tags
 // Prefix used by all the tag names:
 const prefix = "created-by-"
 
-// aftctl tags to track all resources created
+// Aftctl is the tag to track all resources created by aftctl.
 const Aftctl = prefix + "aftctl"
 
+// True is a constant for the string "true".
 const True = "true"

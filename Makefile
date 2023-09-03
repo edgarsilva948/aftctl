@@ -12,11 +12,26 @@ export CGO_ENABLED=0
 # Unset GOFLAG for CI and ensure we've got nothing accidently set
 unexport GOFLAGS
 
+.PHONY: aftctl
 aftctl:
 	go build ./cmd/aftctl
 
+.PHONY: test
+test:
+	go test ./...
+
+.PHONY: coverage
+coverage:
+	go test -coverprofile=cover.out  ./...
+
+.PHONY: install
+install:
+	go install ./cmd/rosa
+
+.PHONY: fmt
 fmt:
 	gofmt -s -l -w cmd pkg
 
-test:
-	go test ./...		
+.PHONY: lint
+lint:
+	golint ./...

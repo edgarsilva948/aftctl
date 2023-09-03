@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Cmd represents the root command for the "deploy" functionality.
 var Cmd = &cobra.Command{
 	Use:     "deploy",
 	Aliases: []string{"setup"},

@@ -5,11 +5,13 @@ Copyright © 2023 Edgar Costa edgarsilva948@gmail.com
 package completion
 
 import (
+	"io"
 	"os"
 
 	"github.com/spf13/cobra"
 )
 
+// Cmd represents the completion command for generating shell completion scripts.
 var Cmd = &cobra.Command{
 	Use:   "completion",
 	Short: "Generates completion scripts",
@@ -55,21 +57,42 @@ PowerShell:
 	DisableFlagsInUseLine: true,
 	ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
 	Args:                  cobra.OnlyValidArgs,
-	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
-			// Default to bash for backwards compatibility
-			cmd.Root().GenBashCompletion(os.Stdout)
-			return
-		}
-		switch args[0] {
-		case "bash":
-			cmd.Root().GenBashCompletion(os.Stdout)
-		case "zsh":
-			cmd.Root().GenZshCompletion(os.Stdout)
-		case "fish":
-			cmd.Root().GenFishCompletion(os.Stdout, true)
-		case "powershell":
-			cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
-		}
-	},
+	Run:                   Run,
+}
+
+// Run is the main function for the 'completion' command. It delegates to RunCompletion.
+func Run(cmd *cobra.Command, args []string) {
+	RunCompletion(cmd, args, os.Stdout)
+}
+
+// RunCompletion generates the shell completion script based on the provided arguments.
+func RunCompletion(cmd *cobra.Command, args []string, out io.Writer) {
+	if len(args) == 0 {
+		// Default to bash for backwards compatibility
+		generateBashCompletion(cmd.Root(), out)
+		return
+	}
+	switch args[0] {
+	case "bash":
+		generateBashCompletion(cmd.Root(), out)
+	case "zsh":
+		generateZshCompletion(cmd.Root(), out)
+	case "powershell":
+		generatePowerShellCompletion(cmd.Root(), out)
+	}
+}
+
+// generateBashCompletion generates Bash completion script.
+func generateBashCompletion(cmd *cobra.Command, out io.Writer) {
+	cmd.GenBashCompletion(out)
+}
+
+// generateZshCompletion generates Zsh completion script.
+func generateZshCompletion(cmd *cobra.Command, out io.Writer) {
+	cmd.GenZshCompletion(out)
+}
+
+// generatePowerShellCompletion generates PowerShell completion script.
+func generatePowerShellCompletion(cmd *cobra.Command, out io.Writer) {
+	cmd.GenPowerShellCompletionWithDesc(out)
 }

@@ -18,11 +18,12 @@ var args struct {
 	format string
 }
 
+// Cmd represents the Cobra command for generating documentation files.
 var Cmd = &cobra.Command{
 	Use:    "docs",
 	Short:  "Generates documentation files",
 	Hidden: true,
-	RunE:   run,
+	RunE:   Run,
 }
 
 func init() {
@@ -45,20 +46,23 @@ func init() {
 	)
 }
 
-func createDir(dirPath string) error {
+// CreateDir creates a directory if it doesn't already exist.
+func CreateDir(dirPath string) error {
 	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
 		err = os.MkdirAll(dirPath, 0755)
 		if err != nil {
-			return fmt.Errorf("Falha ao criar o diretório: %s", err)
+			return fmt.Errorf("falha ao criar o diretório: %s", err)
 		}
 	}
 	return nil
 }
 
-func run(cmd *cobra.Command, _ []string) (err error) {
+// Run is the function executed when the Cobra command is run.
+// It generates the documentation files.
+func Run(cmd *cobra.Command, _ []string) (err error) {
 	cmd.Root().DisableAutoGenTag = true
 
-	if err := createDir(args.dir); err != nil {
+	if err := CreateDir(args.dir); err != nil {
 		return err
 	}
 
@@ -73,8 +77,6 @@ func run(cmd *cobra.Command, _ []string) (err error) {
 			Source:  fmt.Sprintf("Copyright (c) %d Edgar Costa edgarsilva948@gmail.com", year),
 		}
 		err = doc.GenManTree(cmd.Root(), header, args.dir)
-	case "restructured":
-		err = doc.GenReSTTree(cmd.Root(), args.dir)
 	}
 
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 	"reflect"
 )
 
+// HandleEscapedEmptyString takes an input string and returns an empty string if the input is "\"\"".
 func HandleEscapedEmptyString(input string) string {
 	if input == "\"\"" {
 		input = ""
@@ -15,7 +16,8 @@ func HandleEscapedEmptyString(input string) string {
 	return input
 }
 
-func Contains[T comparable](slice []T, element T) bool {
+// Contains checks if a slice contains a given element.
+func Contains(slice []interface{}, element interface{}) bool {
 	for _, sliceElement := range slice {
 		if reflect.DeepEqual(sliceElement, element) {
 			return true

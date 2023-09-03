@@ -7,3 +7,4 @@ aftctl64.exe
 .env
 
 test
+cover.out
