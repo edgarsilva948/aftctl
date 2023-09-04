@@ -69,6 +69,7 @@ func UseColor(osInfo OsInfo) bool {
 		if err != nil {
 			return true
 		}
+
 		return (stdout.Mode()&os.ModeDevice != 0) && (stdout.Mode()&os.ModeNamedPipe == 0)
 	}
 }
