@@ -2,22 +2,85 @@
 Copyright © 2023 Edgar Costa edgarsilva948@gmail.com
 */
 
-// This file contains aws clients and session.
+// Package aws contains aws clients and session.
 package aws
 
 import (
+	"errors"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
+// EnsureS3BucketExists creates a new S3 bucket with the given name, or returns success if it already exists.
+func EnsureS3BucketExists(client S3Client, bucketName string, kmsKeyID string) (bool, error) {
+
+	isClientProvided, err := checkIfClientIsProvided(client)
+
+	if !isClientProvided {
+		return false, err
+	}
+
+	isBucketNameProvided, err := checkIfBucketNameIsProvided(bucketName)
+
+	if !isBucketNameProvided {
+		return false, err
+	}
+
+	// se o bucket existir essa funcao precisa retornar TRUE e NAO CRIAR
+
+	// ajustar para retornar sucesso caso ja exista
+	bucketExists, err := bucketExists(client, bucketName)
+
+	if !bucketExists {
+		return false, err
+	}
+
+	// alterar para o status de criado/n criado
+
+	return false, nil
+}
+
 // BucketExists checks if a given S3 bucket exists.
-func BucketExists(client S3Client, bucketName string) (bool, error) {
-	// Check if the client is nil
+func bucketExists(client S3Client, bucketName string) (bool, error) {
+
+	isClientProvided, err := checkIfClientIsProvided(client)
+
+	if !isClientProvided {
+		return false, err
+	}
+
+	isBucketNameProvided, err := checkIfBucketNameIsProvided(bucketName)
+	if !isBucketNameProvided {
+		return false, err
+	}
+
+	isBucketNameValid, err := checkBucketNameCompliance(bucketName)
+	if !isBucketNameValid {
+		return false, err
+	}
+
+	isBucketExistent, err := checkIfBucketExists(client, bucketName)
+	if err != nil {
+		return false, err
+	}
+
+	return isBucketExistent, nil
+}
+
+// func to verify if the given client is valid
+func checkIfClientIsProvided(client S3Client) (bool, error) {
 	if client == nil {
 		return false, fmt.Errorf("S3Client is not provided")
 	}
 
+	return true, nil
+}
+
+// func to verify if the given bucket name already exists
+func checkIfBucketExists(client S3Client, bucketName string) (bool, error) {
 	input := &s3.ListBucketsInput{}
 
 	output, err := client.ListBuckets(input)
@@ -27,6 +90,7 @@ func BucketExists(client S3Client, bucketName string) (bool, error) {
 
 	for _, bucket := range output.Buckets {
 		if *bucket.Name == bucketName {
+			fmt.Printf("S3 Bucket: %s already exists\n", bucketName)
 			return true, nil
 		}
 	}
@@ -34,7 +98,54 @@ func BucketExists(client S3Client, bucketName string) (bool, error) {
 	return false, nil
 }
 
-// EnsureS3BucketExists creates a new S3 bucket with the given name, or returns success if it already exists.
-func EnsureS3BucketExists(client S3Client, bucketName string, kmsKeyID string) (bool, error) {
+// func to verify if the given bucket is provided
+func checkIfBucketNameIsProvided(bucketName string) (bool, error) {
+	if bucketName == "" {
+		return false, fmt.Errorf("bucket name is not provided")
+	}
+
+	return true, nil
+}
+
+// func to verify if the given bucket is compliant
+func checkBucketNameCompliance(bucketName string) (bool, error) {
+	length := len(bucketName)
+
+	// Bucket names must be between 3 (min) and 63 (max) characters long.
+	if length < 3 || length > 63 {
+		return false, errors.New("bucket name must be between 3 and 63 characters long")
+	}
+
+	//Bucket names must not start with the prefix xn--.
+	// Bucket names must not start with the prefix sthree- and the prefix sthree-configurator.
+	if strings.HasPrefix(bucketName, "xn--") || strings.HasPrefix(bucketName, "sthree-") {
+		return false, errors.New("bucket name cannot start with restricted prefixes (xn-- or sthree-)")
+	}
+
+	// Bucket names must not end with the suffix -s3alias. This suffix is reserved for access point alias names. For more information, see Using a bucket-style alias for your S3 bucket access point.
+	// Bucket names must not end with the suffix --ol-s3. This suffix is reserved for Object Lambda Access Point alias names. For more information, see How to use a bucket-style alias for your S3 bucket Object Lambda Access Point.
+	if strings.HasSuffix(bucketName, "-s3alias") || strings.HasSuffix(bucketName, "--ol-s3") {
+		return false, errors.New("bucket name cannot end with restricted suffixes (-s3alias or --ol-s3)")
+	}
+
+	// Bucket names can consist only of lowercase letters, numbers, and hyphens (-).
+	pattern := `^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`
+	re := regexp.MustCompile(pattern)
+	if !re.MatchString(bucketName) {
+		return false, errors.New("bucket name can only consist of lowercase letters, numbers, and hyphens, and must begin and end with a letter or number")
+	}
+
+	// Additional check to make sure bucket names don't have two adjacent periods.
+	if strings.Contains(bucketName, "..") {
+		return false, errors.New("bucket name must not contain two adjacent periods")
+	}
+
+	// Check for IP address format (which is not allowed)
+	ipPattern := `^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$`
+	ipRe := regexp.MustCompile(ipPattern)
+	if ipRe.MatchString(bucketName) {
+		return false, errors.New("bucket name must not be formatted as an IP address")
+	}
+
 	return true, nil
 }

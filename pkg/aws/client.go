@@ -2,7 +2,7 @@
 Copyright © 2023 Edgar Costa edgarsilva948@gmail.com
 */
 
-// This file contains aws clients and session.
+// Package aws contains aws clients and session.
 package aws
 
 import (
