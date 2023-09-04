@@ -1,34 +1,28 @@
-name: Go
+name: Go Test and coverage
 
-on:
-  push:
-    branches: [ main ]
+on: [push, pull_request]
 
 jobs:
-
   build:
-    name: Build
     runs-on: ubuntu-latest
     steps:
 
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v2
-      with:
-        go-version: ^1.21
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
 
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.21'
 
-    - name: Get dependencies
-      run: go mod download
+      - name: Get dependencies
+        run: go mod download
 
-    - name: Build
-      run: go build -v ./...
+      - name: Run Build
+        run: go build -v ./...
 
-    - name: Test
-      run: go test -v ./... -coverprofile=coverage.txt
+      - name: Run coverage
+        run: go test -race -coverprofile=coverage.out -covermode=atomic
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
