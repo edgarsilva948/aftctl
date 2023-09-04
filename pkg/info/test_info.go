@@ -2,6 +2,8 @@
 Copyright © 2023 Edgar Costa edgarsilva948@gmail.com
 */
 
+// This file contains test information about the tool.
+
 package info
 
 import (

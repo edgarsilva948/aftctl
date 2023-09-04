@@ -1,4 +1,4 @@
-name: Go Test and coverage
+name: CI
 
 on: [push, pull_request]
 

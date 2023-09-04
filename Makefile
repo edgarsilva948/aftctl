@@ -30,7 +30,7 @@ install:
 
 .PHONY: fmt
 fmt:
-	gofmt -s -l -w cmd pkg
+	gofmt -s -e -l -w cmd pkg
 
 .PHONY: lint
 lint:
