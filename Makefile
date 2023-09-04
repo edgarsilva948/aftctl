@@ -22,7 +22,7 @@ test:
 
 .PHONY: coverage
 coverage:
-	go test -coverprofile=cover.out  ./...
+	go test -v -coverprofile=cover.out  ./...
 
 .PHONY: install
 install:
