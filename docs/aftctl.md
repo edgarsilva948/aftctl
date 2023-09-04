@@ -12,7 +12,6 @@ For further documentation visit https://docs.aws.amazon.com/controltower/latest/
 
 ```
       --color string   Surround certain characters with escape sequences to display them in color on the terminal. Allowed options are [auto never always] (default "auto")
-      --debug          Enable debug mode.
   -h, --help           help for aftctl
 ```
 

@@ -12,6 +12,25 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// OsInfo defines an interface for obtaining OS-specific information.
+type OsInfo interface {
+	GetOs() string
+	GetStdoutStat() (os.FileInfo, error)
+}
+
+// RealOsInfo implements the OsInfo interface using real OS calls.
+type RealOsInfo struct{}
+
+// GetOs returns the operating system's name.
+func (r RealOsInfo) GetOs() string {
+	return runtime.GOOS
+}
+
+// GetStdoutStat returns the FileInfo describing the standard output file.
+func (r RealOsInfo) GetStdoutStat() (os.FileInfo, error) {
+	return os.Stdout.Stat()
+}
+
 var color string
 
 var options = []string{"auto", "never", "always"}
@@ -33,8 +52,8 @@ func completion(cmd *cobra.Command, args []string, toComplete string) ([]string,
 	return options, cobra.ShellCompDirectiveDefault
 }
 
-// UseColor returns a bool that indicates whether the color is enabled
-func UseColor() bool {
+// UseColor decides if the color should be enabled based on OsInfo.
+func UseColor(osInfo OsInfo) bool {
 	switch color {
 	case "never":
 		return false

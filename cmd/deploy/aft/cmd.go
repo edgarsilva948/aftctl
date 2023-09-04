@@ -7,17 +7,12 @@ package aft
 import (
 	"errors"
 	"fmt"
-	"log"
-	"os"
 	"regexp"
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 
 	"github.com/edgarsilva948/aftctl/pkg/aws"
-
-	"gopkg.in/yaml.v2"
 )
 
 // Metadata holds the basic information.
@@ -120,7 +115,6 @@ func init() {
 		"Simulate deploying AFT",
 	)
 
-	// aftctl deploy aft -f arquivo.yaml
 	flags.StringVarP(
 		&args.filename,
 		"file",
@@ -135,7 +129,7 @@ func init() {
 		"name",
 		"n",
 		"aft-deploy-configuration",
-		"The Name for metadata",
+		"A metadata Name for the deployment",
 	)
 
 	flags.BoolVar(
@@ -164,158 +158,19 @@ var config Config
 
 func run(cmd *cobra.Command, _ []string) {
 
-	cfg := aws.Config{
-		Region: "us-east-1",
-	}
-	aws.InitAWSClient(cfg)
-
 	s3Client := aws.NewS3Client()
 
-	isValidName := regexp.MustCompile(`^[a-zA-Z0-9-]+$`).MatchString
-	isValidBucketName := regexp.MustCompile(`^[a-zA-Z0-9-]+$`).MatchString
-
-	// fileNameIsNull() {
-	//	return args.filename != ""
-	// }
-	if args.filename != "" {
-
-		// Allowed flags with -f
-		allowedFlagsWithF := []string{"watch", "dry-run"}
-
-		// Check for other flags
-		flags := cmd.Flags()
-		invalidFlagCombination := false
-		flags.VisitAll(func(flag *pflag.Flag) {
-			if flag.Name != "file" && flag.Changed {
-				isAllowed := false
-				for _, allowedFlag := range allowedFlagsWithF {
-					if flag.Name == allowedFlag {
-						isAllowed = true
-						break
-					}
-				}
-
-				if !isAllowed {
-					fmt.Println("When -f flag is set, no other flags should be provided except for:", allowedFlagsWithF)
-					invalidFlagCombination = true
-				}
-			}
-		})
-
-		if invalidFlagCombination {
-			return
-		}
-
-		// reading the yaml file if informed with -f flag
-		yamlFile, err := os.ReadFile(*&args.filename)
-		if err != nil {
-			log.Fatalf("Error reading YAML file: %s\n", err)
-			return
-		}
-
-		// Unmarshal the YAML file
-		err = yaml.Unmarshal(yamlFile, &config)
-		if err != nil {
-			log.Fatalf("Error unmarshalling YAML: %s\n", err)
-			return
-		}
-
-		// Name: not informed (file)
-		if config.Metadata.Name == "" {
-			config.Metadata.Name = args.name
-		}
-
-		// Name: informed correctly (file)
-		if config.Metadata.Name != "" && isValidName(config.Metadata.Name) {
-			fmt.Printf("Deploying the AFT using the Metadata name: %s\n", config.Metadata.Name)
-		}
-
-		// Name: informed incorrectly (file)
-		if config.Metadata.Name != "" && !isValidName(config.Metadata.Name) {
-			log.Fatalf("Metadata 'name' must be any combination of uppercase (A-Z), lowercase (a-z) alphabets, numbers (0-9) along with hyphens (-).")
-			return
-		}
-
-		// Create Bucket: Option not informed (file)
-		if config.DeploymentConfiguration.CreateTerraformStateBucket == nil {
-			log.Fatalf("Deployment Configuration 'createTerraformStateBucket' is required")
-			return
-		}
-
-		// Bucket Name: not informed (file)
-		if config.DeploymentConfiguration.TerraformStateBucketName == "" {
-			log.Fatalf("Deployment Configuration 'terraformStateBucketName' is required")
-			return
-		}
-
-		// Bucket Name: informed incorrectly (file)
-		if !isValidBucketName(config.DeploymentConfiguration.TerraformStateBucketName) {
-			log.Fatalf("Deployment Configuration 'terraformStateBucketName' must be any combination of uppercase (A-Z), lowercase (a-z) alphabets, numbers (0-9) along with hyphens (-).")
-			return
-		}
-
-		// Bucket Name: informed correctly (file) and the Create Bucket Option is false
-		if isValidBucketName(config.DeploymentConfiguration.TerraformStateBucketName) && !*config.DeploymentConfiguration.CreateTerraformStateBucket {
-			fmt.Printf("The bucket %s will be used to store tfstate file\n", config.DeploymentConfiguration.TerraformStateBucketName)
-		}
-
-		// Bucket Name: informed correctly (file) and the Create Bucket Option is true
-		if isValidBucketName(config.DeploymentConfiguration.TerraformStateBucketName) && *config.DeploymentConfiguration.CreateTerraformStateBucket {
-			CreateStateBucketInAftAccount(s3Client, config.DeploymentConfiguration.TerraformStateBucketName)
-		}
-
-	} else {
-
-		// Name: informed correctly (flag)
-		if args.name != "" && isValidName(args.name) {
-			fmt.Printf("Deploying the AFT using the Metadata name: %s\n", args.name)
-			config.Metadata.Name = args.name
-		}
-
-		// Name: informed incorrectly (flag)
-		if args.name != "" && !isValidName(args.name) {
-			log.Fatalf("flag '--name' (-n) must be any combination of uppercase (A-Z), lowercase (a-z) alphabets, numbers (0-9) along with hyphens (-).")
-			return
-		}
-
-		// Create Bucket: Option informed (flag)
-		if args.createTerraformStateBucket {
-			*config.DeploymentConfiguration.CreateTerraformStateBucket = args.createTerraformStateBucket
-		}
-
-		// Bucket Name: not informed (flag)
-		if args.terraformStateBucketName == "" {
-			log.Fatalf("flag '--terraform-state-bucket-name' is required")
-			return
-		}
-
-		// Bucket Name: informed incorrectly (flag)
-		if !isValidBucketName(args.terraformStateBucketName) {
-			log.Fatalf("flag '--terraform-state-bucket-name' must be any combination of uppercase (A-Z), lowercase (a-z) alphabets, numbers (0-9) along with hyphens (-).")
-			return
-		}
-
-		// Bucket Name: informed correctly (flag) and the Create Bucket Option is false
-		if isValidBucketName(args.terraformStateBucketName) && !args.createTerraformStateBucket {
-			fmt.Printf("The bucket %s will be used to store tfstate file\n", args.terraformStateBucketName)
-			config.DeploymentConfiguration.TerraformStateBucketName = args.terraformStateBucketName
-		}
-
-		// Bucket Name: informed correctly (flag) and the Create Bucket Option is true
-		if isValidBucketName(args.terraformStateBucketName) && args.createTerraformStateBucket {
-			config.DeploymentConfiguration.TerraformStateBucketName = args.terraformStateBucketName
-			CreateStateBucketInAftAccount(s3Client, args.terraformStateBucketName)
-		}
-
-		//
-		// needs to create all the validations for bucket path
-		//
-		config.DeploymentConfiguration.TerraformStateBucketPath = args.terraformStateBucketPath
-	}
+	CreateStateBucketInAftAccount(s3Client, args.terraformStateBucketName)
 }
 
 // CreateStateBucketInAftAccount creates a state bucket in the AFT account.
 func CreateStateBucketInAftAccount(client aws.S3Client, bucketName string) (bool, error) {
+
+	isClientValid, err := isClientValid(client)
+	if !isClientValid {
+		fmt.Println("Raw error:", err)
+		return false, err
+	}
 
 	isBucketNameValid, err := checkBucketName(bucketName)
 	if !isBucketNameValid {
@@ -325,6 +180,14 @@ func CreateStateBucketInAftAccount(client aws.S3Client, bucketName string) (bool
 	isBucketReady, err := checkBucketStatus(client, bucketName)
 	if !isBucketReady {
 		return false, err
+	}
+
+	return true, nil
+}
+
+func isClientValid(client aws.S3Client) (bool, error) {
+	if client == nil {
+		return false, errors.New("client is nil")
 	}
 
 	return true, nil
@@ -373,7 +236,7 @@ func checkBucketName(bucketName string) (bool, error) {
 }
 
 func checkBucketStatus(client aws.S3Client, bucketName string) (bool, error) {
-	exists, err := aws.BucketExists(client, bucketName, "us-east-1")
+	exists, err := aws.BucketExists(client, bucketName)
 	if err != nil {
 		return false, fmt.Errorf("error checking if bucket exists: %w", err)
 	}

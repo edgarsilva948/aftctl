@@ -26,7 +26,7 @@ var _ = ginkgo.Describe("Interacting with the S3 API", func() {
 
 		ginkgo.When("S3Client is not provided", func() {
 			ginkgo.It("should return an error", func() {
-				exists, err := BucketExists(nil, "bucketName", "us-west-2")
+				exists, err := BucketExists(nil, "bucketName")
 				gomega.Expect(exists).To(gomega.BeFalse())
 				gomega.Expect(err).To(gomega.MatchError("S3Client is not provided"))
 			})
@@ -39,7 +39,7 @@ var _ = ginkgo.Describe("Interacting with the S3 API", func() {
 						return nil, errors.New("AWS S3 error")
 					},
 				}
-				exists, err := BucketExists(mockClient, "bucketName", "us-west-2")
+				exists, err := BucketExists(mockClient, "bucketName")
 				gomega.Expect(exists).To(gomega.BeFalse())
 				gomega.Expect(err).To(gomega.MatchError("failed to list S3 buckets: AWS S3 error"))
 			})
@@ -56,7 +56,7 @@ var _ = ginkgo.Describe("Interacting with the S3 API", func() {
 						}, nil
 					},
 				}
-				exists, err := BucketExists(mockClient, "bucketName", "us-west-2")
+				exists, err := BucketExists(mockClient, "bucketName")
 				gomega.Expect(exists).To(gomega.BeTrue())
 				gomega.Expect(err).To(gomega.BeNil())
 			})
@@ -73,7 +73,7 @@ var _ = ginkgo.Describe("Interacting with the S3 API", func() {
 						}, nil
 					},
 				}
-				exists, err := BucketExists(mockClient, "bucketName", "us-west-2")
+				exists, err := BucketExists(mockClient, "bucketName")
 				gomega.Expect(exists).To(gomega.BeFalse())
 				gomega.Expect(err).To(gomega.BeNil())
 			})

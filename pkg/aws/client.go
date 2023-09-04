@@ -5,7 +5,9 @@ Copyright © 2023 Edgar Costa edgarsilva948@gmail.com
 package aws
 
 import (
+	"errors"
 	"log"
+	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -25,16 +27,42 @@ type Config struct {
 // AWSSession is the AWS session used to interact with AWS services.
 var AWSSession *session.Session
 
-// InitAWSClient initializes the AWS client
-func InitAWSClient(cfg Config) {
+// InitializeAWS checks the AWS region and creates a new session.
+func InitializeAWS() (bool, error) {
+	isRegionSet, err := checkRegion()
+	if !isRegionSet {
+		log.Fatalf("Region Error: %s", err)
+		return false, nil
+	}
+
+	isSessionSet, err := createSession(os.Getenv("AWS_REGION"))
+	if !isSessionSet {
+		log.Fatalf("AWS Session Error: %s", err)
+		return false, nil
+	}
+
+	return true, nil
+}
+
+// checkRegion returns an error if region is not set
+func checkRegion() (bool, error) {
+	region := os.Getenv("AWS_REGION")
+	if region == "" {
+		return false, errors.New("AWS_REGION environment variable not set")
+	}
+	return true, nil
+}
+
+// createSession returns a new session initialized
+func createSession(region string) (bool, error) {
 	var err error
 	AWSSession, err = session.NewSession(&aws.Config{
-		Region: aws.String(cfg.Region)},
-	)
-
+		Region: aws.String(region),
+	})
 	if err != nil {
-		log.Fatalf("AWS Session Error: %s", err)
+		return false, err
 	}
+	return true, nil
 }
 
 // NewS3Client returns a new S3Client initialized

@@ -8,6 +8,7 @@ package info
 
 import (
 	"fmt"
+	"io"
 	"runtime"
 )
 
@@ -36,8 +37,8 @@ func BuildCurrentVersion() Version {
 	return v
 }
 
-// PrintVersion prints the current version of the tool to standard output.
-func PrintVersion() {
+// PrintVersion prints the current version of the tool to the provided writer.
+func PrintVersion(w io.Writer) {
 	v := BuildCurrentVersion()
-	fmt.Printf("Version: {Major:\"%s\", Minor:\"%s\", Patch:\"%s\", GoVersion:\"%s\"}\n", v.Major, v.Minor, v.Patch, v.GoVersion)
+	fmt.Fprintf(w, "Version: {Major:\"%s\", Minor:\"%s\", Patch:\"%s\", GoVersion:\"%s\"}\n", v.Major, v.Minor, v.Patch, v.GoVersion)
 }

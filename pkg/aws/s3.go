@@ -13,7 +13,7 @@ import (
 )
 
 // BucketExists checks if a given S3 bucket exists.
-func BucketExists(client S3Client, bucketName string, region string) (bool, error) {
+func BucketExists(client S3Client, bucketName string) (bool, error) {
 	// Check if the client is nil
 	if client == nil {
 		return false, fmt.Errorf("S3Client is not provided")

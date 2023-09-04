@@ -20,7 +20,6 @@ aftctl version [flags]
 
 ```
       --color string   Surround certain characters with escape sequences to display them in color on the terminal. Allowed options are [auto never always] (default "auto")
-      --debug          Enable debug mode.
 ```
 
 ### SEE ALSO
