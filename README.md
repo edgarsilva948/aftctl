@@ -1,6 +1,6 @@
 # `aftctl` - A CLI for Amazon Account Factory for Terraform (AFT)
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/edgarsilva948/aftctl)](https://goreportcard.com/report/github.com/edgarsilva948/aftctl) [![codecov](https://codecov.io/gh/edgarsilva948/aftctl/graph/badge.svg?token=PIGXFII1NG)](https://codecov.io/gh/edgarsilva948/aftctl) [![CI](https://github.com/edgarsilva948/aftctl/actions/workflows/main.yaml/badge.svg)](https://github.com/edgarsilva948/aftctl/actions/workflows/main.yaml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/edgarsilva948/aftctl)](https://goreportcard.com/report/github.com/edgarsilva948/aftctl) [![codecov](https://codecov.io/gh/edgarsilva948/aftctl/graph/badge.svg?token=PIGXFII1NG)](https://codecov.io/gh/edgarsilva948/aftctl) [![CI](https://github.com/edgarsilva948/aftctl/actions/workflows/main.yml/badge.svg)](https://github.com/edgarsilva948/aftctl/actions/workflows/main.yml)
 
 
 `aftctl` is a straightforward command-line interface (CLI) tool to perform the AFT deploy. 
