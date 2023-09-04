@@ -9,3 +9,5 @@ aftctl64.exe
 test
 tests
 cover.out
+
+pre-flight.sh
