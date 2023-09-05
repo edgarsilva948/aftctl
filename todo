@@ -1,6 +1,15 @@
-- test the config.Metadata.Name arg
-- test the config.DeploymentConfiguration.TerraformStateBucketName arg
-- test the config.DeploymentConfiguration.CreateTerraformStateBucket arg
-- test the config.DeploymentConfiguration.TerraformStateBucketPath arg
+- prereqs -> AFT account credentials
+- check if the bucket exists -> DONE
+- create bucket if it doesn't exist' - WIP
+- check CT variables (12 digits) - DO
+- check CT main region and seccondary region - DO
+- check terraform variables - DO
+- check VCS variables - DO
+- check aft bool params - DO
 
-- create validations for TerraformStateBucketPath
+- Create IAM roles - DO
+- Create CodePipeline - DO
+
+
+- prereqs -> management account credentials
+- connect management account and add permission to Account Factory - DO 

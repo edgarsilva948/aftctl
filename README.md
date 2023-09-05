@@ -25,7 +25,6 @@ Before you configure and launch your AFT environment, ensure you have the follow
 
 - **AFT Feature Options**: For more information, see [Enable feature options](#).
 
-
 ## Installation
 
 `aftctl` is available for installation as outlined below. 

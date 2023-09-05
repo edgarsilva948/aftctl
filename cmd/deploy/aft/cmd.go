@@ -153,7 +153,8 @@ var config Config
 
 func run(cmd *cobra.Command, _ []string) {
 
-	s3Client := aws.NewS3Client()
+	awsClient := aws.NewClient()
 
-	aws.EnsureS3BucketExists(s3Client, args.terraformStateBucketName, "test-kms-key-id")
+	aws.EnsureS3BucketExists(awsClient.GetS3Client(), args.terraformStateBucketName, "test-kms-key-id")
+
 }

@@ -8,59 +8,51 @@ package aws
 import (
 	"errors"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
 // EnsureS3BucketExists creates a new S3 bucket with the given name, or returns success if it already exists.
 func EnsureS3BucketExists(client S3Client, bucketName string, kmsKeyID string) (bool, error) {
 
-	isClientProvided, err := checkIfClientIsProvided(client)
+	_, err := checkIfClientIsProvided(client)
 
-	if !isClientProvided {
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
 		return false, err
 	}
 
-	isBucketNameProvided, err := checkIfBucketNameIsProvided(bucketName)
+	_, err = checkIfBucketNameIsProvided(bucketName)
 
-	if !isBucketNameProvided {
+	if err != nil {
 		return false, err
 	}
 
-	// se o bucket existir essa funcao precisa retornar TRUE e NAO CRIAR
-
-	// ajustar para retornar sucesso caso ja exista
-	bucketExists, err := bucketExists(client, bucketName)
+	bucketExists, _ := bucketExists(client, bucketName)
 
 	if !bucketExists {
-		return false, err
+		fmt.Printf("S3 bucket %s doesn't exists... creating\n", bucketName)
+
+		_, err := createBucket(client, bucketName, kmsKeyID)
+
+		if err != nil {
+			return false, err
+		}
+
+		return true, nil
 	}
 
-	// alterar para o status de criado/n criado
+	fmt.Printf("S3 bucket %s already exists... continuing", bucketName)
 
-	return false, nil
+	return true, nil
 }
 
 // BucketExists checks if a given S3 bucket exists.
 func bucketExists(client S3Client, bucketName string) (bool, error) {
-
-	isClientProvided, err := checkIfClientIsProvided(client)
-
-	if !isClientProvided {
-		return false, err
-	}
-
-	isBucketNameProvided, err := checkIfBucketNameIsProvided(bucketName)
-	if !isBucketNameProvided {
-		return false, err
-	}
-
-	isBucketNameValid, err := checkBucketNameCompliance(bucketName)
-	if !isBucketNameValid {
-		return false, err
-	}
 
 	isBucketExistent, err := checkIfBucketExists(client, bucketName)
 	if err != nil {
@@ -90,7 +82,6 @@ func checkIfBucketExists(client S3Client, bucketName string) (bool, error) {
 
 	for _, bucket := range output.Buckets {
 		if *bucket.Name == bucketName {
-			fmt.Printf("S3 Bucket: %s already exists\n", bucketName)
 			return true, nil
 		}
 	}
@@ -101,7 +92,14 @@ func checkIfBucketExists(client S3Client, bucketName string) (bool, error) {
 // func to verify if the given bucket is provided
 func checkIfBucketNameIsProvided(bucketName string) (bool, error) {
 	if bucketName == "" {
+		fmt.Printf("Error: %v\n", "bucket name is not provided")
 		return false, fmt.Errorf("bucket name is not provided")
+	}
+
+	isBucketNameValid, err := checkBucketNameCompliance(bucketName)
+	if !isBucketNameValid {
+		fmt.Printf("Error: %v\n", err)
+		return false, err
 	}
 
 	return true, nil
@@ -147,5 +145,33 @@ func checkBucketNameCompliance(bucketName string) (bool, error) {
 		return false, errors.New("bucket name must not be formatted as an IP address")
 	}
 
+	return true, nil
+}
+
+// func to create given bucket if it doesn't exist'
+func createBucket(client S3Client, bucketName string, kmsKeyID string) (bool, error) {
+
+	_, err := client.CreateBucket(&s3.CreateBucketInput{
+		Bucket: aws.String(bucketName),
+	})
+
+	if err != nil {
+		log.Printf("unable to create bucket %q, %v", bucketName, err)
+		return false, err
+	}
+
+	// Wait until bucket is created before finishing
+	fmt.Printf("Waiting for bucket %q to be created...\n", bucketName)
+
+	err = client.WaitUntilBucketExists(&s3.HeadBucketInput{
+		Bucket: aws.String(bucketName),
+	})
+
+	if err != nil {
+		log.Printf("error occurred while waiting for bucket to be created, %v: %v", bucketName, err)
+		return false, err
+	}
+
+	fmt.Printf("S3 Bucket %s successfuly created", bucketName)
 	return true, nil
 }

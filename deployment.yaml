@@ -3,7 +3,7 @@ metadata:
 
 deploymentConfiguration:
   createTerraformStateBucket: true
-  terraformStateBucketName: "688754301773-test-cli_"
+  terraformStateBucketName: "688754301773-test-cli"
   terraformStateBucketPath: ""
 
 controlTowerVariables:

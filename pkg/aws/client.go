@@ -6,67 +6,61 @@ Copyright © 2023 Edgar Costa edgarsilva948@gmail.com
 package aws
 
 import (
-	"errors"
-	"log"
+	"fmt"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/codepipeline"
+	"github.com/aws/aws-sdk-go/service/codepipeline/codepipelineiface"
+	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 )
 
 // S3Client represents a client for Amazon S3.
 type S3Client interface {
 	ListBuckets(input *s3.ListBucketsInput) (*s3.ListBucketsOutput, error)
+	CreateBucket(input *s3.CreateBucketInput) (*s3.CreateBucketOutput, error)
+	WaitUntilBucketExists(*s3.HeadBucketInput) error
 }
 
-// A Config represents the AWS configuration settings.
-type Config struct {
-	Region string
+// Client struct implementing all the client interfaces
+type Client struct {
+	s3Client          s3iface.S3API
+	iamClient         iamiface.IAMAPI
+	codepipelineiface codepipelineiface.CodePipelineAPI
 }
 
-// AWSSession is the AWS session used to interact with AWS services.
-var AWSSession *session.Session
+// NewClient loads credentials following the chain credentials
+func NewClient() *Client {
 
-// InitializeAWS checks the AWS region and creates a new session.
-func InitializeAWS() (bool, error) {
-	isRegionSet, err := checkRegion()
-	if !isRegionSet {
-		log.Fatalf("Region Error: %s", err)
-		return false, nil
-	}
-
-	isSessionSet, err := createSession(os.Getenv("AWS_REGION"))
-	if !isSessionSet {
-		log.Fatalf("AWS Session Error: %s", err)
-		return false, nil
-	}
-
-	return true, nil
-}
-
-// checkRegion returns an error if region is not set
-func checkRegion() (bool, error) {
-	region := os.Getenv("AWS_REGION")
-	if region == "" {
-		return false, errors.New("AWS_REGION environment variable not set")
-	}
-	return true, nil
-}
-
-// createSession returns a new session initialized
-func createSession(region string) (bool, error) {
-	var err error
-	AWSSession, err = session.NewSession(&aws.Config{
-		Region: aws.String(region),
-	})
+	sess, err := session.NewSession()
 	if err != nil {
-		return false, err
+		fmt.Println(err)
+		os.Exit(1)
 	}
-	return true, nil
+
+	_, errCreds := sess.Config.Credentials.Get()
+	if errCreds != nil {
+		fmt.Println(errCreds)
+		os.Exit(1)
+	}
+
+	if aws.StringValue(sess.Config.Region) == "" {
+		fmt.Println("Region is not set.")
+		os.Exit(1)
+	}
+
+	return &Client{
+		s3Client:          s3.New(sess),
+		iamClient:         iam.New(sess),
+		codepipelineiface: codepipeline.New(sess),
+	}
 }
 
-// NewS3Client returns a new S3Client initialized
-func NewS3Client() *s3.S3 {
-	return s3.New(AWSSession)
+// GetS3Client fetches the S3 Client and enables the cmd to use
+func (ac *Client) GetS3Client() s3iface.S3API {
+	return ac.s3Client
 }
