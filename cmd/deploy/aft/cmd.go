@@ -17,9 +17,8 @@ type Metadata struct {
 
 // DeploymentConfiguration holds the terraform aditional resources
 type DeploymentConfiguration struct {
-	CreateTerraformStateBucket *bool  `yaml:"createTerraformStateBucket"`
-	TerraformStateBucketName   string `yaml:"terraformStateBucketName"`
-	TerraformStateBucketPath   string `yaml:"terraformStateBucketPath"`
+	TerraformStateBucketName string `yaml:"terraformStateBucketName"`
+	TerraformStateBucketPath string `yaml:"terraformStateBucketPath"`
 }
 
 // ControlTowerVariables holds the CT deployment information
@@ -77,6 +76,7 @@ var args struct {
 	terraformStateBucketName   string
 	createTerraformStateBucket bool
 	terraformStateBucketPath   string
+	aftManagementAccountID     string
 }
 
 // Cmd is the exported command for the AFT deployment.
@@ -127,13 +127,6 @@ func init() {
 		"A metadata Name for the deployment",
 	)
 
-	flags.BoolVar(
-		&args.createTerraformStateBucket,
-		"create-terraform-state-bucket",
-		true,
-		"Whether to create a terraform state bucket",
-	)
-
 	flags.StringVar(
 		&args.terraformStateBucketName,
 		"terraform-state-bucket-name",
@@ -142,8 +135,8 @@ func init() {
 	)
 
 	flags.StringVar(
-		&args.terraformStateBucketPath,
-		"terraform-state-bucket-path",
+		&args.aftManagementAccountID,
+		"aft-account-id",
 		"",
 		"Path to save the state file inside the terraform state bucket",
 	)
@@ -155,6 +148,6 @@ func run(cmd *cobra.Command, _ []string) {
 
 	awsClient := aws.NewClient()
 
-	aws.EnsureS3BucketExists(awsClient.GetS3Client(), args.terraformStateBucketName, "test-kms-key-id")
+	aws.EnsureS3BucketExists(awsClient.GetS3Client(), args.terraformStateBucketName, args.aftManagementAccountID, "test-kms-key-id")
 
 }

@@ -13,13 +13,18 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 )
 
 // MockS3Client is a mock implementation of an S3 client for testing.
 type MockS3Client struct {
+	s3iface.S3API
 	ListBucketsFunc           func(input *s3.ListBucketsInput) (*s3.ListBucketsOutput, error)
 	CreateBucketFunc          func(input *s3.CreateBucketInput) (*s3.CreateBucketOutput, error)
 	WaitUntilBucketExistsFunc func(*s3.HeadBucketInput) error
+	PutPublicAccessBlockFunc  func(input *s3.PutPublicAccessBlockInput) (*s3.PutPublicAccessBlockOutput, error)
+	PutBucketPolicyFunc       func(*s3.PutBucketPolicyInput) (*s3.PutBucketPolicyOutput, error)
+	PutBucketTaggingFunc      func(*s3.PutBucketTaggingInput) (*s3.PutBucketTaggingOutput, error)
 }
 
 // ListBuckets is a mock implementation of the ListBuckets method.
@@ -37,6 +42,24 @@ func (m *MockS3Client) WaitUntilBucketExists(input *s3.HeadBucketInput) error {
 	return m.WaitUntilBucketExistsFunc(input)
 }
 
+// PutPublicAccessBlock is a mock implementation of the PutPublicAccessBlock method.
+func (m *MockS3Client) PutPublicAccessBlock(input *s3.PutPublicAccessBlockInput) (*s3.PutPublicAccessBlockOutput, error) {
+	if m.PutPublicAccessBlockFunc != nil {
+		return m.PutPublicAccessBlockFunc(input)
+	}
+	return &s3.PutPublicAccessBlockOutput{}, nil
+}
+
+// PutBucketPolicy is a mock implementation of the PutBucketPolicy method.
+func (m *MockS3Client) PutBucketPolicy(input *s3.PutBucketPolicyInput) (*s3.PutBucketPolicyOutput, error) {
+	return m.PutBucketPolicyFunc(input) // Use the custom function field
+}
+
+// PutBucketTagging is a mock implementation of the PutBucketTagging method.
+func (m *MockS3Client) PutBucketTagging(input *s3.PutBucketTaggingInput) (*s3.PutBucketTaggingOutput, error) {
+	return m.PutBucketTaggingFunc(input) // Use the custom function field
+}
+
 var _ = ginkgo.Describe("Interacting with the S3 API", func() {
 
 	ginkgo.Context("testing the EnsureS3bucketExists function", func() {
@@ -52,14 +75,8 @@ var _ = ginkgo.Describe("Interacting with the S3 API", func() {
 							},
 						}, nil
 					},
-					CreateBucketFunc: func(input *s3.CreateBucketInput) (*s3.CreateBucketOutput, error) {
-						return &s3.CreateBucketOutput{}, nil
-					},
-					WaitUntilBucketExistsFunc: func(input *s3.HeadBucketInput) error {
-						return nil
-					},
 				}
-				ensure, err := EnsureS3BucketExists(mockClient, "another-bucket", "test-kms-key-id")
+				ensure, err := EnsureS3BucketExists(mockClient, "another-bucket", "000000000000", "test-kms-key-id")
 				gomega.Expect(ensure).To(gomega.BeTrue())
 				gomega.Expect(err).To(gomega.BeNil())
 			})
@@ -82,8 +99,14 @@ var _ = ginkgo.Describe("Interacting with the S3 API", func() {
 					WaitUntilBucketExistsFunc: func(input *s3.HeadBucketInput) error {
 						return nil
 					},
+					PutBucketTaggingFunc: func(input *s3.PutBucketTaggingInput) (*s3.PutBucketTaggingOutput, error) {
+						return &s3.PutBucketTaggingOutput{}, nil
+					},
+					PutBucketPolicyFunc: func(input *s3.PutBucketPolicyInput) (*s3.PutBucketPolicyOutput, error) {
+						return nil, nil
+					},
 				}
-				ensure, err := EnsureS3BucketExists(mockClient, "new-bucket", "test-kms-key-id")
+				ensure, err := EnsureS3BucketExists(mockClient, "new-bucket", "000000000000", "test-kms-key-id")
 				gomega.Expect(ensure).To(gomega.BeTrue())
 				gomega.Expect(err).To(gomega.BeNil())
 			})
@@ -104,7 +127,7 @@ var _ = ginkgo.Describe("Interacting with the S3 API", func() {
 						return nil
 					},
 				}
-				ensure, err := EnsureS3BucketExists(mockClient, "failed-bucket", "test-kms-key-id")
+				ensure, err := EnsureS3BucketExists(mockClient, "failed-bucket", "000000000000", "test-kms-key-id")
 				gomega.Expect(ensure).To(gomega.BeFalse())
 				gomega.Expect(err).To(gomega.MatchError("AWS create bucket error"))
 			})
@@ -125,9 +148,38 @@ var _ = ginkgo.Describe("Interacting with the S3 API", func() {
 						return nil
 					},
 				}
-				ensure, err := EnsureS3BucketExists(mockClient, "existing-bucket", "test-kms-key-id")
+				ensure, err := EnsureS3BucketExists(mockClient, "existing-bucket", "000000000000", "test-kms-key-id")
 				gomega.Expect(ensure).To(gomega.BeFalse())
 				gomega.Expect(err).To(gomega.MatchError("AWS WaitUntilBucketExists error"))
+			})
+		})
+
+		ginkgo.When("PutPublicAccessBlock call fails", func() {
+			ginkgo.It("should return an error", func() {
+				mockClient := &MockS3Client{
+					CreateBucketFunc: func(input *s3.CreateBucketInput) (*s3.CreateBucketOutput, error) {
+						return &s3.CreateBucketOutput{}, nil
+					},
+					ListBucketsFunc: func(input *s3.ListBucketsInput) (*s3.ListBucketsOutput, error) {
+						return &s3.ListBucketsOutput{
+							Buckets: []*s3.Bucket{},
+						}, nil
+					},
+					WaitUntilBucketExistsFunc: func(input *s3.HeadBucketInput) error {
+						return nil
+					},
+					PutPublicAccessBlockFunc: func(input *s3.PutPublicAccessBlockInput) (*s3.PutPublicAccessBlockOutput, error) {
+						return nil, errors.New("PutPublicAccessBlock failed") // return failure for this method
+					},
+					PutBucketPolicyFunc: func(input *s3.PutBucketPolicyInput) (*s3.PutBucketPolicyOutput, error) {
+						return nil, nil
+					},
+				}
+
+				success, err := EnsureS3BucketExists(mockClient, "validBucketName", "validAftManagementAccountId", "validKmsKeyID")
+
+				gomega.Expect(err).To(gomega.HaveOccurred())
+				gomega.Expect(success).To(gomega.BeFalse())
 			})
 		})
 
@@ -145,6 +197,23 @@ var _ = ginkgo.Describe("Interacting with the S3 API", func() {
 				exists, err := bucketExists(mockClient, "bucketname")
 				gomega.Expect(exists).To(gomega.BeFalse())
 				gomega.Expect(err).To(gomega.MatchError("failed to list S3 buckets: AWS S3 error"))
+			})
+		})
+
+		ginkgo.When("if bucket name is not provided", func() {
+			ginkgo.It("should return an error", func() {
+				mockClient := &MockS3Client{
+					ListBucketsFunc: func(input *s3.ListBucketsInput) (*s3.ListBucketsOutput, error) {
+						return &s3.ListBucketsOutput{
+							Buckets: []*s3.Bucket{
+								{Name: aws.String("another-bucket")},
+							},
+						}, nil
+					},
+				}
+				ensure, err := bucketExists(mockClient, "")
+				gomega.Expect(ensure).To(gomega.BeFalse())
+				gomega.Expect(err).To(gomega.BeNil())
 			})
 		})
 
@@ -205,25 +274,6 @@ var _ = ginkgo.Describe("Interacting with the S3 API", func() {
 				ensure, err := checkIfClientIsProvided(nil)
 				gomega.Expect(ensure).To(gomega.BeFalse())
 				gomega.Expect(err).To(gomega.MatchError("S3Client is not provided"))
-			})
-		})
-	})
-
-	ginkgo.Context("testing the bucketExists", func() {
-		ginkgo.When("if bucket name is not provided", func() {
-			ginkgo.It("should return an error", func() {
-				mockClient := &MockS3Client{
-					ListBucketsFunc: func(input *s3.ListBucketsInput) (*s3.ListBucketsOutput, error) {
-						return &s3.ListBucketsOutput{
-							Buckets: []*s3.Bucket{
-								{Name: aws.String("another-bucket")},
-							},
-						}, nil
-					},
-				}
-				ensure, err := bucketExists(mockClient, "")
-				gomega.Expect(ensure).To(gomega.BeFalse())
-				gomega.Expect(err).To(gomega.BeNil())
 			})
 		})
 	})

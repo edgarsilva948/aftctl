@@ -12,12 +12,14 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/edgarsilva948/aftctl/pkg/aws/tags"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
 // EnsureS3BucketExists creates a new S3 bucket with the given name, or returns success if it already exists.
-func EnsureS3BucketExists(client S3Client, bucketName string, kmsKeyID string) (bool, error) {
+func EnsureS3BucketExists(client S3Client, bucketName string, aftManagementAccountID string, kmsKeyID string) (bool, error) {
 
 	_, err := checkIfClientIsProvided(client)
 
@@ -37,7 +39,7 @@ func EnsureS3BucketExists(client S3Client, bucketName string, kmsKeyID string) (
 	if !bucketExists {
 		fmt.Printf("S3 bucket %s doesn't exists... creating\n", bucketName)
 
-		_, err := createBucket(client, bucketName, kmsKeyID)
+		_, err := createBucket(client, bucketName, aftManagementAccountID, kmsKeyID)
 
 		if err != nil {
 			return false, err
@@ -149,7 +151,7 @@ func checkBucketNameCompliance(bucketName string) (bool, error) {
 }
 
 // func to create given bucket if it doesn't exist'
-func createBucket(client S3Client, bucketName string, kmsKeyID string) (bool, error) {
+func createBucket(client S3Client, bucketName string, aftManagementAccountID string, kmsKeyID string) (bool, error) {
 
 	_, err := client.CreateBucket(&s3.CreateBucketInput{
 		Bucket: aws.String(bucketName),
@@ -169,6 +171,44 @@ func createBucket(client S3Client, bucketName string, kmsKeyID string) (bool, er
 
 	if err != nil {
 		log.Printf("error occurred while waiting for bucket to be created, %v: %v", bucketName, err)
+		return false, err
+	}
+
+	_, err = client.PutPublicAccessBlock(&s3.PutPublicAccessBlockInput{
+		Bucket: aws.String(bucketName),
+		PublicAccessBlockConfiguration: &s3.PublicAccessBlockConfiguration{
+			BlockPublicAcls:       aws.Bool(true),
+			IgnorePublicAcls:      aws.Bool(true),
+			BlockPublicPolicy:     aws.Bool(true),
+			RestrictPublicBuckets: aws.Bool(true),
+		},
+	})
+
+	if err != nil {
+		return false, err
+	}
+	_, err = client.PutBucketPolicy(&s3.PutBucketPolicyInput{
+		Bucket: aws.String(bucketName),
+		Policy: aws.String(fmt.Sprintf(WriteAndListPolicyTemplateForAccount, aftManagementAccountID, bucketName, bucketName)),
+	})
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return false, err
+	}
+
+	_, err = client.PutBucketTagging(&s3.PutBucketTaggingInput{
+		Bucket: aws.String(bucketName),
+		Tagging: &s3.Tagging{
+			TagSet: []*s3.Tag{
+				{
+					Key:   aws.String(tags.Aftctl),
+					Value: aws.String(tags.True),
+				},
+			},
+		},
+	})
+	if err != nil {
 		return false, err
 	}
 
