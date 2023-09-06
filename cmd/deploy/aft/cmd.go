@@ -6,8 +6,6 @@ package aft
 
 import (
 	"github.com/spf13/cobra"
-
-	"github.com/edgarsilva948/aftctl/pkg/aws"
 )
 
 // Metadata holds the basic information.
@@ -65,18 +63,6 @@ var args struct {
 
 	// Simulate deploying AFT
 	dryRun bool
-
-	// The Deployment YAML file to process
-	filename string
-
-	// Metadata args
-	name string
-
-	// Deployment Configuration args
-	terraformStateBucketName   string
-	createTerraformStateBucket bool
-	terraformStateBucketPath   string
-	aftManagementAccountID     string
 }
 
 // Cmd is the exported command for the AFT deployment.
@@ -109,45 +95,10 @@ func init() {
 		false,
 		"Simulate deploying AFT",
 	)
-
-	flags.StringVarP(
-		&args.filename,
-		"file",
-		"f",
-		"",
-		"This file contains the deployment "+
-			"instructions to deploy AFT",
-	)
-
-	flags.StringVarP(
-		&args.name,
-		"name",
-		"n",
-		"aft-deploy-configuration",
-		"A metadata Name for the deployment",
-	)
-
-	flags.StringVar(
-		&args.terraformStateBucketName,
-		"terraform-state-bucket-name",
-		"",
-		"Name of the deployment terraform state bucket",
-	)
-
-	flags.StringVar(
-		&args.aftManagementAccountID,
-		"aft-account-id",
-		"",
-		"Path to save the state file inside the terraform state bucket",
-	)
 }
 
 var config Config
 
 func run(cmd *cobra.Command, _ []string) {
-
-	awsClient := aws.NewClient()
-
-	aws.EnsureS3BucketExists(awsClient.GetS3Client(), args.terraformStateBucketName, args.aftManagementAccountID, "test-kms-key-id")
 
 }

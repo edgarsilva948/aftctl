@@ -7,10 +7,13 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/codecommit"
+	"github.com/aws/aws-sdk-go/service/codecommit/codecommitiface"
 	"github.com/aws/aws-sdk-go/service/codepipeline"
 	"github.com/aws/aws-sdk-go/service/codepipeline/codepipelineiface"
 	"github.com/aws/aws-sdk-go/service/iam"
@@ -29,11 +32,19 @@ type S3Client interface {
 	PutBucketTagging(*s3.PutBucketTaggingInput) (*s3.PutBucketTaggingOutput, error)
 }
 
+// CodeCommitClient represents a client for Amazon Code Commit.
+type CodeCommitClient interface {
+	CreateRepository(*codecommit.CreateRepositoryInput) (*codecommit.CreateRepositoryOutput, error)
+	GetRepository(*codecommit.GetRepositoryInput) (*codecommit.GetRepositoryOutput, error)
+	TagResource(*codecommit.TagResourceInput) (*codecommit.TagResourceOutput, error)
+}
+
 // Client struct implementing all the client interfaces
 type Client struct {
-	s3Client          s3iface.S3API
-	iamClient         iamiface.IAMAPI
-	codepipelineiface codepipelineiface.CodePipelineAPI
+	s3Client           s3iface.S3API
+	iamClient          iamiface.IAMAPI
+	codepipelineClient codepipelineiface.CodePipelineAPI
+	codecommitClient   codecommitiface.CodeCommitAPI
 }
 
 // WriteAndListPolicyTemplateForAccount is the default bucket policy to be used in new buckets
@@ -63,9 +74,14 @@ const WriteAndListPolicyTemplateForAccount = `{
 func NewClient() *Client {
 
 	sess, err := session.NewSession()
+
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
+	}
+
+	if sess == nil {
+		log.Fatal("Session is nil")
 	}
 
 	_, errCreds := sess.Config.Credentials.Get()
@@ -80,13 +96,29 @@ func NewClient() *Client {
 	}
 
 	return &Client{
-		s3Client:          s3.New(sess),
-		iamClient:         iam.New(sess),
-		codepipelineiface: codepipeline.New(sess),
+		s3Client:           s3.New(sess),
+		iamClient:          iam.New(sess),
+		codepipelineClient: codepipeline.New(sess),
+		codecommitClient:   codecommit.New(sess),
 	}
 }
 
 // GetS3Client fetches the S3 Client and enables the cmd to use
 func (ac *Client) GetS3Client() s3iface.S3API {
 	return ac.s3Client
+}
+
+// GetIamClient fetches the IAM Client and enables the cmd to use
+func (ac *Client) GetIamClient() iamiface.IAMAPI {
+	return ac.iamClient
+}
+
+// GetCodePipelineClient fetches the Code Pipeline Client and enables the cmd to use
+func (ac *Client) GetCodePipelineClient() codepipelineiface.CodePipelineAPI {
+	return ac.codepipelineClient
+}
+
+// GetCodeCommitClient fetches the CodeCommit Client and enables the cmd to use
+func (ac *Client) GetCodeCommitClient() codecommitiface.CodeCommitAPI {
+	return ac.codecommitClient
 }

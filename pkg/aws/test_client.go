@@ -11,14 +11,8 @@ import (
 
 var _ = ginkgo.Describe("Interacting with AWS API", func() {
 
-	ginkgo.Context("validating the checkRegion function", func() {
+	ginkgo.Context("validating the AWS Client function", func() {
 
 	})
 
-	ginkgo.Context("Creating AWS session", func() {
-
-	})
-
-	ginkgo.Context("Creating a new S3 client", func() {
-	})
 })

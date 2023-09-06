@@ -6,6 +6,7 @@ package deploy
 
 import (
 	"github.com/edgarsilva948/aftctl/cmd/deploy/aft"
+	"github.com/edgarsilva948/aftctl/cmd/deploy/prereqs"
 	"github.com/spf13/cobra"
 )
 
@@ -20,5 +21,5 @@ var Cmd = &cobra.Command{
 func init() {
 
 	Cmd.AddCommand(aft.Cmd)
-
+	Cmd.AddCommand(prereqs.Cmd)
 }

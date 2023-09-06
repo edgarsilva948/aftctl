@@ -268,10 +268,10 @@ var _ = ginkgo.Describe("Interacting with the S3 API", func() {
 
 	})
 
-	ginkgo.Context("testing the checkIfClientIsProvided", func() {
+	ginkgo.Context("testing the checkIfS3ClientIsProvided", func() {
 		ginkgo.When("S3Client is not provided", func() {
 			ginkgo.It("should return an error", func() {
-				ensure, err := checkIfClientIsProvided(nil)
+				ensure, err := checkIfS3ClientIsProvided(nil)
 				gomega.Expect(ensure).To(gomega.BeFalse())
 				gomega.Expect(err).To(gomega.MatchError("S3Client is not provided"))
 			})

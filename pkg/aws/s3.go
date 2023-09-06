@@ -21,7 +21,7 @@ import (
 // EnsureS3BucketExists creates a new S3 bucket with the given name, or returns success if it already exists.
 func EnsureS3BucketExists(client S3Client, bucketName string, aftManagementAccountID string, kmsKeyID string) (bool, error) {
 
-	_, err := checkIfClientIsProvided(client)
+	_, err := checkIfS3ClientIsProvided(client)
 
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
@@ -48,7 +48,7 @@ func EnsureS3BucketExists(client S3Client, bucketName string, aftManagementAccou
 		return true, nil
 	}
 
-	fmt.Printf("S3 bucket %s already exists... continuing", bucketName)
+	fmt.Printf("S3 bucket %s already exists... continuing\n", bucketName)
 
 	return true, nil
 }
@@ -65,7 +65,7 @@ func bucketExists(client S3Client, bucketName string) (bool, error) {
 }
 
 // func to verify if the given client is valid
-func checkIfClientIsProvided(client S3Client) (bool, error) {
+func checkIfS3ClientIsProvided(client S3Client) (bool, error) {
 	if client == nil {
 		return false, fmt.Errorf("S3Client is not provided")
 	}
