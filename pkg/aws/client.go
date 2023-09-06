@@ -39,6 +39,13 @@ type CodeCommitClient interface {
 	TagResource(*codecommit.TagResourceInput) (*codecommit.TagResourceOutput, error)
 }
 
+// IAMClient represents a client for Amazon Code Commit.
+type IAMClient interface {
+	CreateRole(*iam.CreateRoleInput) (*iam.CreateRoleOutput, error)
+	PutRolePolicy(*iam.PutRolePolicyInput) (*iam.PutRolePolicyOutput, error)
+	GetRole(*iam.GetRoleInput) (*iam.GetRoleOutput, error)
+}
+
 // Client struct implementing all the client interfaces
 type Client struct {
 	s3Client           s3iface.S3API
@@ -46,29 +53,6 @@ type Client struct {
 	codepipelineClient codepipelineiface.CodePipelineAPI
 	codecommitClient   codecommitiface.CodeCommitAPI
 }
-
-// WriteAndListPolicyTemplateForAccount is the default bucket policy to be used in new buckets
-const WriteAndListPolicyTemplateForAccount = `{
-	"Version": "2012-10-17",
-	"Statement": [
-	  {
-		"Sid": "AllowAccountWriteAndList",
-		"Effect": "Allow",
-		"Principal": {
-		  "AWS": "arn:aws:iam::%s:root"
-		},
-		"Action": [
-		  "s3:PutObject",
-		  "s3:PutObjectAcl",
-		  "s3:ListBucket"
-		],
-		"Resource": [
-		  "arn:aws:s3:::%s/*",
-		  "arn:aws:s3:::%s"
-		]
-	  }
-	]
-  }`
 
 // NewClient loads credentials following the chain credentials
 func NewClient() *Client {

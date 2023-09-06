@@ -13,6 +13,8 @@ import (
 	"strings"
 
 	"github.com/edgarsilva948/aftctl/pkg/aws/tags"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -48,9 +50,26 @@ func EnsureS3BucketExists(client S3Client, bucketName string, aftManagementAccou
 		return true, nil
 	}
 
-	fmt.Printf("S3 bucket %s already exists... continuing\n", bucketName)
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	logger, _ := config.Build()
+
+	defer logger.Sync()
+
+	message := fmt.Sprintf(" S3 Bucket %s already exists", bucketName)
+
+	customS3InfoLog(logger, message)
 
 	return true, nil
+}
+
+func customS3InfoLog(logger *zap.Logger, msg string) {
+
+	// CodeCommit related emojis, you can choose others
+	codeEmoji := "🪣"
+	coloredMsg := "\x1b[36m" + codeEmoji + " " + msg + "\x1b[0m"
+
+	logger.Info(coloredMsg)
 }
 
 // BucketExists checks if a given S3 bucket exists.
@@ -187,6 +206,30 @@ func createBucket(client S3Client, bucketName string, aftManagementAccountID str
 	if err != nil {
 		return false, err
 	}
+
+	// WriteAndListPolicyTemplateForAccount is the default bucket policy to be used in new buckets
+	const WriteAndListPolicyTemplateForAccount = `{
+		"Version": "2012-10-17",
+		"Statement": [
+			{
+				"Sid": "AllowAccountWriteAndList",
+				"Effect": "Allow",
+				"Principal": {
+				"AWS": "arn:aws:iam::%s:root"
+				},
+				"Action": [
+				"s3:PutObject",
+				"s3:PutObjectAcl",
+				"s3:ListBucket"
+				],
+				"Resource": [
+				"arn:aws:s3:::%s/*",
+				"arn:aws:s3:::%s"
+				]
+			}
+		]
+	}`
+
 	_, err = client.PutBucketPolicy(&s3.PutBucketPolicyInput{
 		Bucket: aws.String(bucketName),
 		Policy: aws.String(fmt.Sprintf(WriteAndListPolicyTemplateForAccount, aftManagementAccountID, bucketName, bucketName)),
@@ -212,6 +255,6 @@ func createBucket(client S3Client, bucketName string, aftManagementAccountID str
 		return false, err
 	}
 
-	fmt.Printf("S3 Bucket %s successfuly created", bucketName)
+	fmt.Printf("S3 Bucket %s successfully created\n", bucketName)
 	return true, nil
 }

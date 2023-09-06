@@ -13,6 +13,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/codecommit"
 	"github.com/edgarsilva948/aftctl/pkg/aws/tags"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 // EnsureCodeCommitRepoExists creates a new codecommit repository with the given name, or returns success if it already exists.
@@ -45,9 +47,26 @@ func EnsureCodeCommitRepoExists(client CodeCommitClient, repoName string, descri
 		return true, nil
 	}
 
-	fmt.Printf("CodeCommit repository %s already exists... continuing", repoName)
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	logger, _ := config.Build()
+
+	defer logger.Sync()
+
+	message := fmt.Sprintf("CodeCommit Repository %s already exists", repoName)
+
+	customCodeCommitInfoLog(logger, message)
 
 	return true, nil
+}
+
+func customCodeCommitInfoLog(logger *zap.Logger, msg string) {
+
+	// CodeCommit related emojis, you can choose others
+	codeEmoji := "📦"
+	coloredMsg := "\033[35m" + codeEmoji + " " + msg + "\033[0m"
+
+	logger.Info(coloredMsg)
 }
 
 // func to verify if the given repository is provided
