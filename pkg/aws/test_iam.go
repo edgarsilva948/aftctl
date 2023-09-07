@@ -69,6 +69,38 @@ var _ = ginkgo.Describe("Interacting with the IAM API", func() {
 
 			})
 		})
+
+		ginkgo.When("IAM client is not provided", func() {
+			ginkgo.It("should return an error", func() {
+
+				roleExists, err := EnsureIamRoleExists(nil, "test-role", "test-policy", "test-bucket", "test-input", "test-input", "test-input", "test-input")
+
+				gomega.Expect(roleExists).To(gomega.BeFalse())
+				gomega.Expect(err).To(gomega.MatchError("IAMClient is not provided"))
+
+			})
+		})
+
+		ginkgo.When("IAM Role Name is not provided", func() {
+			ginkgo.It("should return an error", func() {
+
+				mockClient := &MockIAMClient{
+					GetRoleFunc: func(input *iam.GetRoleInput) (*iam.GetRoleOutput, error) {
+						return &iam.GetRoleOutput{
+							Role: &iam.Role{
+								RoleName: aws.String("roleName"),
+							},
+						}, nil
+					},
+				}
+
+				roleExists, err := EnsureIamRoleExists(mockClient, "", "test-policy", "test-bucket", "test-input", "test-input", "test-input", "test-input")
+
+				gomega.Expect(roleExists).To(gomega.BeFalse())
+				gomega.Expect(err).To(gomega.MatchError("role name is not provided"))
+
+			})
+		})
 	})
 
 	ginkgo.Context("testing the checkIfRoleNameIsProvided function", func() {
@@ -78,6 +110,15 @@ var _ = ginkgo.Describe("Interacting with the IAM API", func() {
 				check, err := checkIfRoleNameIsProvided("")
 				gomega.Expect(check).To(gomega.BeFalse())
 				gomega.Expect(err).To(gomega.MatchError("role name is not provided"))
+			})
+		})
+
+		ginkgo.When(" RoleName is provided and not Valid ", func() {
+			ginkgo.It("should return an error", func() {
+
+				check, err := checkIfRoleNameIsProvided("ab")
+				gomega.Expect(check).To(gomega.BeFalse())
+				gomega.Expect(err).To(gomega.MatchError("iam name must be between 3 and 63 characters long"))
 			})
 		})
 	})
@@ -123,6 +164,19 @@ var _ = ginkgo.Describe("Interacting with the IAM API", func() {
 				gomega.Expect(err).To(gomega.BeNil())
 			})
 		})
+	})
+
+	ginkgo.Context("testing the checkIfIamClientIsProvided function", func() {
+		ginkgo.Context("testing the checkIfIamClientIsProvided", func() {
+			ginkgo.When("IamClient is not provided", func() {
+				ginkgo.It("should return an error", func() {
+					ensure, err := checkIfIamClientIsProvided(nil)
+					gomega.Expect(ensure).To(gomega.BeFalse())
+					gomega.Expect(err).To(gomega.MatchError("IAMClient is not provided"))
+				})
+			})
+		})
+
 	})
 
 })
