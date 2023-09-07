@@ -101,6 +101,27 @@ var _ = ginkgo.Describe("Interacting with the IAM API", func() {
 
 			})
 		})
+
+		ginkgo.When("Bucket doesn't exists", func() {
+			ginkgo.It("should create the bucket", func() {
+
+				mockClient := &MockIAMClient{
+					GetRoleFunc: func(input *iam.GetRoleInput) (*iam.GetRoleOutput, error) {
+						return &iam.GetRoleOutput{
+							Role: &iam.Role{
+								RoleName: aws.String(""),
+							},
+						}, nil
+					},
+				}
+
+				roleExists, err := EnsureIamRoleExists(mockClient, "new-role", "test-policy", "test-bucket", "test-input", "test-input", "test-input", "test-input")
+
+				gomega.Expect(roleExists).To(gomega.BeTrue())
+				gomega.Expect(err).To(gomega.BeNil())
+
+			})
+		})
 	})
 
 	ginkgo.Context("testing the checkIfRoleNameIsProvided function", func() {
