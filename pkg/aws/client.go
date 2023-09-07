@@ -12,6 +12,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/codebuild"
+	"github.com/aws/aws-sdk-go/service/codebuild/codebuildiface"
 	"github.com/aws/aws-sdk-go/service/codecommit"
 	"github.com/aws/aws-sdk-go/service/codecommit/codecommitiface"
 	"github.com/aws/aws-sdk-go/service/codepipeline"
@@ -39,6 +41,12 @@ type CodeCommitClient interface {
 	TagResource(*codecommit.TagResourceInput) (*codecommit.TagResourceOutput, error)
 }
 
+// CodeBuildClient represents a client for Amazon Code Build.
+type CodeBuildClient interface {
+	CreateProject(*codebuild.CreateProjectInput) (*codebuild.CreateProjectOutput, error)
+	ListProjects(*codebuild.ListProjectsInput) (*codebuild.ListProjectsOutput, error)
+}
+
 // IAMClient represents a client for Amazon Code Commit.
 type IAMClient interface {
 	CreateRole(*iam.CreateRoleInput) (*iam.CreateRoleOutput, error)
@@ -52,6 +60,7 @@ type Client struct {
 	iamClient          iamiface.IAMAPI
 	codepipelineClient codepipelineiface.CodePipelineAPI
 	codecommitClient   codecommitiface.CodeCommitAPI
+	codebuildClient    codebuildiface.CodeBuildAPI
 }
 
 // NewClient loads credentials following the chain credentials
@@ -84,6 +93,7 @@ func NewClient() *Client {
 		iamClient:          iam.New(sess),
 		codepipelineClient: codepipeline.New(sess),
 		codecommitClient:   codecommit.New(sess),
+		codebuildClient:    codebuild.New(sess),
 	}
 }
 
@@ -105,4 +115,9 @@ func (ac *Client) GetCodePipelineClient() codepipelineiface.CodePipelineAPI {
 // GetCodeCommitClient fetches the CodeCommit Client and enables the cmd to use
 func (ac *Client) GetCodeCommitClient() codecommitiface.CodeCommitAPI {
 	return ac.codecommitClient
+}
+
+// CodebuildClient fetches the Codebuild Client and enables the cmd to use
+func (ac *Client) CodebuildClient() codebuildiface.CodeBuildAPI {
+	return ac.codebuildClient
 }

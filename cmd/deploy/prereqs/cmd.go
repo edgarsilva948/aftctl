@@ -23,6 +23,7 @@ var args struct {
 	codePipelineRolePolicyName string
 	codeBuildRolePolicyName    string
 	codeBuildRoleName          string
+	projectName                string
 }
 
 // Cmd is the exported command for the AFT prerequisites.
@@ -92,7 +93,7 @@ func init() {
 		&args.codeBuildDockerImage,
 		"docker-image",
 		"",
-		"aws/codebuild/amazonlinux2-x86_64-standard:3.0",
+		"aws/codebuild/amazonlinux2-x86_64-standard:4.0",
 		"CodeBuild default Docker Image name",
 	)
 
@@ -126,6 +127,14 @@ func init() {
 		"",
 		"aft-deployment-build-service-role-policy",
 		"CodeBuild default role policy name",
+	)
+
+	flags.StringVarP(
+		&args.projectName,
+		"code-build-project-name",
+		"",
+		"aft-deployment-build",
+		"CodeBuild default project to deploy AFT",
 	)
 
 }
@@ -176,6 +185,16 @@ func run(cmd *cobra.Command, _ []string) {
 	)
 
 	// Ensure the Code Build Project is created
+	aws.EnsureCodeBuildProjectExists(
+		awsClient.CodebuildClient(),
+		aftManagementAccountID,
+		args.codeBuildDockerImage,
+		args.projectName,
+		args.gitSourceRepo,
+		args.branchName,
+		args.codeBuildRoleName,
+	)
+
 	// Ensure the Code Pipeline Pipe is created
 
 }

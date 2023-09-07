@@ -52,6 +52,8 @@ func EnsureS3BucketExists(client S3Client, bucketName string, aftManagementAccou
 
 	config := zap.NewDevelopmentConfig()
 	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	config.DisableCaller = true
+
 	logger, _ := config.Build()
 
 	defer logger.Sync()

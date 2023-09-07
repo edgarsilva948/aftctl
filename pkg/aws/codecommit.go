@@ -49,6 +49,8 @@ func EnsureCodeCommitRepoExists(client CodeCommitClient, repoName string, descri
 
 	config := zap.NewDevelopmentConfig()
 	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	config.DisableCaller = true
+
 	logger, _ := config.Build()
 
 	defer logger.Sync()

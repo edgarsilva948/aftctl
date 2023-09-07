@@ -1,15 +1,17 @@
 - prereqs -> AFT account credentials
 - check if the bucket exists -> DONE
-- create bucket if it doesn't exist' - WIP
+- create bucket if it doesn't exist' - DONE
 - check CT variables (12 digits) - DO
 - check CT main region and seccondary region - DO
 - check terraform variables - DO
 - check VCS variables - DO
 - check aft bool params - DO
 
-- Create IAM roles - DO
+- Create IAM roles - DONE
 - Create CodePipeline - DO
 
+- enable Logs - DO
+- enable bucket security flags - DO
 
 - prereqs -> management account credentials
 - connect management account and add permission to Account Factory - DO 

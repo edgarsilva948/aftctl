@@ -60,6 +60,7 @@ func EnsureIamRoleExists(client IAMClient, roleName string, trustRelationShipSer
 
 	config := zap.NewDevelopmentConfig()
 	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	config.DisableCaller = true
 	logger, _ := config.Build()
 
 	defer logger.Sync()
