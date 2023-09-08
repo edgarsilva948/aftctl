@@ -13,3 +13,6 @@ cover.out
 aft-deployment
 
 pre-flight.sh
+
+aft-deployment-pipeline.yaml
+aft-deployment.zip

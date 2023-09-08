@@ -13,8 +13,24 @@ import (
 )
 
 var args struct {
-	terraformStateBucketName   string
-	aftManagementAccountID     string
+	// terraform args
+	terraformStateBucketName string
+	tfVersion                string
+	terraformDistribution    string
+
+	// control tower args
+	aftManagementAccountID             string
+	ctManagementAccountID              string
+	logArchiveAccountID                string
+	auditAccountID                     string
+	ctHomeRegion                       string
+	tfBackendSecondaryRegion           string
+	aftMetricsReporting                bool
+	aftFeatureCloudtrailDataEvents     bool
+	aftFeatureEnterpriseSupport        bool
+	aftFeatureDeleteDefaultVPCsEnabled bool
+
+	// deployment resources args
 	branchName                 string
 	gitSourceRepo              string
 	codeBuildDockerImage       string
@@ -26,7 +42,6 @@ var args struct {
 	codeBuildRoleName          string
 	projectName                string
 	pipelineName               string
-	tfVersion                  string
 }
 
 // Cmd is the exported command for the AFT prerequisites.
@@ -156,6 +171,81 @@ func init() {
 		"Terraform version to be used in the deployment and for AFT",
 	)
 
+	flags.StringVarP(
+		&args.terraformDistribution,
+		"terraform-distribution",
+		"",
+		"oss",
+		"Terraform distribution: oss/tfc",
+	)
+
+	flags.StringVar(
+		&args.ctManagementAccountID,
+		"ct-management-account-id",
+		"",
+		"CT Management account id (aka payer/root/master account)",
+	)
+
+	flags.StringVar(
+		&args.logArchiveAccountID,
+		"ct-log-archive-account-id",
+		"",
+		"CT Log Archive account id",
+	)
+
+	flags.StringVar(
+		&args.auditAccountID,
+		"ct-audit-account-id",
+		"",
+		"CT Audit account id",
+	)
+
+	flags.StringVar(
+		&args.ctHomeRegion,
+		"ct-home-region",
+		"",
+		"CT main region",
+	)
+
+	flags.StringVar(
+		&args.tfBackendSecondaryRegion,
+		"ct-seccondary-region",
+		"",
+		"CT seccondary region",
+	)
+
+	flags.BoolVarP(
+		&args.aftMetricsReporting,
+		"aft-enable-metrics-reporting",
+		"",
+		true,
+		"Wheter to enable reporting metrics or not",
+	)
+
+	flags.BoolVarP(
+		&args.aftFeatureCloudtrailDataEvents,
+		"aft-enable-cloudtrail-data-events",
+		"",
+		true,
+		"Wheter to enable cloudtrail data events",
+	)
+
+	flags.BoolVarP(
+		&args.aftFeatureEnterpriseSupport,
+		"aft-enable-enterprise-support",
+		"",
+		true,
+		"Wheter to enable enterprise support in created accounts",
+	)
+
+	flags.BoolVarP(
+		&args.aftFeatureDeleteDefaultVPCsEnabled,
+		"aft-delete-default-vpc",
+		"",
+		true,
+		"Wheter to enable enterprise support in created accounts",
+	)
+
 }
 
 func run(cmd *cobra.Command, _ []string) {
@@ -166,6 +256,10 @@ func run(cmd *cobra.Command, _ []string) {
 	aftManagementAccountID := strings.Trim(args.aftManagementAccountID, " \t")
 
 	interpolatedCodeSuiteBucketName := args.aftManagementAccountID + "-" + args.codePipelineBucketName
+
+	interpolatedZIPFileName := args.gitSourceRepo + ".zip"
+
+	interpolatedCloudformationStackName := args.gitSourceRepo + "-cloudformation-stack"
 
 	codebuildTrustRelationshipService := "codebuild.amazonaws.com"
 	codePipelineTrustRelationshipService := "codepipeline.amazonaws.com"
@@ -214,11 +308,47 @@ func run(cmd *cobra.Command, _ []string) {
 		args.codeBuildRoleName,
 	)
 
+	// Ensure the CodeCommit repo is created with initial code
+	initialcommit.GenerateCommitFiles(
+		args.gitSourceRepo,
+		terraformStateBucketName,
+		"us-east-1",
+		args.tfVersion,
+		args.ctManagementAccountID,
+		args.logArchiveAccountID,
+		args.auditAccountID,
+		args.aftManagementAccountID,
+		args.ctHomeRegion,
+		args.tfBackendSecondaryRegion,
+		args.aftMetricsReporting,
+		args.aftFeatureCloudtrailDataEvents,
+		args.aftFeatureEnterpriseSupport,
+		args.aftFeatureDeleteDefaultVPCsEnabled,
+		args.terraformDistribution,
+	)
+
+	aws.UploadToS3(
+		awsClient.GetS3Client(),
+		interpolatedCodeSuiteBucketName,
+		interpolatedZIPFileName,
+		interpolatedZIPFileName,
+	)
+
 	// Ensure the repository is created
-	aws.EnsureCodeCommitRepoExists(
-		awsClient.GetCodeCommitClient(),
+	// aws.EnsureCodeCommitRepoExists(
+	// 	awsClient.GetCodeCommitClient(),
+	// 	args.gitSourceRepo,
+	// 	args.gitSourceDescription,
+	// )
+
+	// Ensure the repository is created
+	aws.EnsureCloudformationExists(
+		awsClient.CloudformationClient(),
+		interpolatedCloudformationStackName,
 		args.gitSourceRepo,
 		args.gitSourceDescription,
+		interpolatedCodeSuiteBucketName,
+		interpolatedZIPFileName,
 	)
 
 	// Ensure the Code Build Project is created
@@ -244,16 +374,4 @@ func run(cmd *cobra.Command, _ []string) {
 		args.projectName,
 	)
 
-	initialcommit.GenerateCommitFiles(
-		args.gitSourceRepo,
-		terraformStateBucketName,
-		"us-east-1",
-		args.tfVersion,
-	)
-
-	initialcommit.PushCode(
-		args.gitSourceRepo,
-		"us-east-1",
-		args.gitSourceRepo,
-	)
 }

@@ -99,7 +99,7 @@ func checkIfCodeCommitClientIsProvided(client CodeCommitClient) (bool, error) {
 func checkRepoNameCompliance(repoName string) (bool, error) {
 	length := len(repoName)
 
-	// repository names must be between 3 (min) and 63 (max) characters long.
+	// repository names must be between 3 (min) and 100 (max) characters long.
 	if length < 1 || length > 100 {
 		return false, errors.New("repository name must be between 1 and 100 characters long")
 	}

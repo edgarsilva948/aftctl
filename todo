@@ -1,17 +1,18 @@
-- prereqs -> AFT account credentials
 - check if the bucket exists -> DONE
 - create bucket if it doesn't exist' - DONE
-- check CT variables (12 digits) - DO
-- check CT main region and seccondary region - DO
-- check terraform variables - DO
-- check VCS variables - DO
-- check aft bool params - DO
+- check CT variables (12 digits) - DONE
+- check CT main region and seccondary region - DONE
+- check terraform variables - DONE
+- check VCS variables - DONE
+- check aft bool params - DONE
 
 - Create IAM roles - DONE
-- Create CodePipeline - DO
+- Create CodePipeline - DONE
 
-- enable Logs - DO
+- enable Logs - DONE
 - enable bucket security flags - DO
 
-- prereqs -> management account credentials
-- connect management account and add permission to Account Factory - DO 
+- adjust log colors (blue = already exists and green = created) - DO
+- log when zip is uploaded - DO
+- check if repo name already exists before cfn - DO
+- adjust log time format - DO

@@ -12,6 +12,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/codebuild"
 	"github.com/aws/aws-sdk-go/service/codebuild/codebuildiface"
 	"github.com/aws/aws-sdk-go/service/codecommit"
@@ -32,6 +34,7 @@ type S3Client interface {
 	PutPublicAccessBlock(*s3.PutPublicAccessBlockInput) (*s3.PutPublicAccessBlockOutput, error)
 	PutBucketPolicy(*s3.PutBucketPolicyInput) (*s3.PutBucketPolicyOutput, error)
 	PutBucketTagging(*s3.PutBucketTaggingInput) (*s3.PutBucketTaggingOutput, error)
+	PutObject(*s3.PutObjectInput) (*s3.PutObjectOutput, error)
 }
 
 // CodeCommitClient represents a client for Amazon Code Commit.
@@ -60,13 +63,20 @@ type CodePipelineClient interface {
 	ListPipelines(input *codepipeline.ListPipelinesInput) (*codepipeline.ListPipelinesOutput, error)
 }
 
+// CloudformationClient represents a client for Cloudformation.
+type CloudformationClient interface {
+	CreateStack(*cloudformation.CreateStackInput) (*cloudformation.CreateStackOutput, error)
+	DescribeStacks(*cloudformation.DescribeStacksInput) (*cloudformation.DescribeStacksOutput, error)
+}
+
 // Client struct implementing all the client interfaces
 type Client struct {
-	s3Client           s3iface.S3API
-	iamClient          iamiface.IAMAPI
-	codepipelineClient codepipelineiface.CodePipelineAPI
-	codecommitClient   codecommitiface.CodeCommitAPI
-	codebuildClient    codebuildiface.CodeBuildAPI
+	s3Client             s3iface.S3API
+	iamClient            iamiface.IAMAPI
+	codepipelineClient   codepipelineiface.CodePipelineAPI
+	codecommitClient     codecommitiface.CodeCommitAPI
+	codebuildClient      codebuildiface.CodeBuildAPI
+	cloudformationClient cloudformationiface.CloudFormationAPI
 }
 
 // NewClient loads credentials following the chain credentials
@@ -95,11 +105,12 @@ func NewClient() *Client {
 	}
 
 	return &Client{
-		s3Client:           s3.New(sess),
-		iamClient:          iam.New(sess),
-		codepipelineClient: codepipeline.New(sess),
-		codecommitClient:   codecommit.New(sess),
-		codebuildClient:    codebuild.New(sess),
+		s3Client:             s3.New(sess),
+		iamClient:            iam.New(sess),
+		codepipelineClient:   codepipeline.New(sess),
+		codecommitClient:     codecommit.New(sess),
+		codebuildClient:      codebuild.New(sess),
+		cloudformationClient: cloudformation.New(sess),
 	}
 }
 
@@ -131,4 +142,9 @@ func (ac *Client) CodebuildClient() codebuildiface.CodeBuildAPI {
 // CodePipelineClient fetches the CodePipeline Client and enables the cmd to use
 func (ac *Client) CodePipelineClient() codepipelineiface.CodePipelineAPI {
 	return ac.codepipelineClient
+}
+
+// CloudformationClient fetches the CodePipeline Client and enables the cmd to use
+func (ac *Client) CloudformationClient() cloudformationiface.CloudFormationAPI {
+	return ac.cloudformationClient
 }
