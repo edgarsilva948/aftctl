@@ -64,7 +64,6 @@ func EnsureCodeCommitRepoExists(client CodeCommitClient, repoName string, descri
 
 func customCodeCommitInfoLog(logger *zap.Logger, msg string) {
 
-	// CodeCommit related emojis, you can choose others
 	codeEmoji := "📦"
 	coloredMsg := "\033[35m" + codeEmoji + " " + msg + "\033[0m"
 

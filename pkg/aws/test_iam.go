@@ -62,7 +62,7 @@ var _ = ginkgo.Describe("Interacting with the IAM API", func() {
 					},
 				}
 
-				roleExists, err := EnsureIamRoleExists(mockClient, "test-role", "test-policy", "test-bucket", "test-input", "test-input", "test-input", "test-input")
+				roleExists, err := EnsureIamRoleExists(mockClient, "test-role", "test-policy", "test-bucket", "test-input", "test-input", "test-input", "test-input", "test-bucket")
 
 				gomega.Expect(roleExists).To(gomega.BeTrue())
 				gomega.Expect(err).To(gomega.BeNil())
@@ -73,7 +73,7 @@ var _ = ginkgo.Describe("Interacting with the IAM API", func() {
 		ginkgo.When("IAM client is not provided", func() {
 			ginkgo.It("should return an error", func() {
 
-				roleExists, err := EnsureIamRoleExists(nil, "test-role", "test-policy", "test-bucket", "test-input", "test-input", "test-input", "test-input")
+				roleExists, err := EnsureIamRoleExists(nil, "test-role", "test-policy", "test-bucket", "test-input", "test-input", "test-input", "test-input", "test-bucket")
 
 				gomega.Expect(roleExists).To(gomega.BeFalse())
 				gomega.Expect(err).To(gomega.MatchError("IAMClient is not provided"))
@@ -94,7 +94,7 @@ var _ = ginkgo.Describe("Interacting with the IAM API", func() {
 					},
 				}
 
-				roleExists, err := EnsureIamRoleExists(mockClient, "", "test-policy", "test-bucket", "test-input", "test-input", "test-input", "test-input")
+				roleExists, err := EnsureIamRoleExists(mockClient, "", "test-policy", "test-bucket", "test-input", "test-input", "test-input", "test-input", "test-bucket")
 
 				gomega.Expect(roleExists).To(gomega.BeFalse())
 				gomega.Expect(err).To(gomega.MatchError("role name is not provided"))
@@ -115,7 +115,7 @@ var _ = ginkgo.Describe("Interacting with the IAM API", func() {
 					},
 				}
 
-				roleExists, err := EnsureIamRoleExists(mockClient, "new-role", "test-policy", "test-bucket", "test-input", "test-input", "test-input", "test-input")
+				roleExists, err := EnsureIamRoleExists(mockClient, "new-role", "test-policy", "test-bucket", "test-input", "test-input", "test-input", "test-input", "test-bucket")
 
 				gomega.Expect(roleExists).To(gomega.BeTrue())
 				gomega.Expect(err).To(gomega.BeNil())

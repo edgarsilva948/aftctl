@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/edgarsilva948/aftctl/pkg/aws"
+	"github.com/edgarsilva948/aftctl/pkg/initialcommit"
 	"github.com/spf13/cobra"
 )
 
@@ -24,6 +25,8 @@ var args struct {
 	codeBuildRolePolicyName    string
 	codeBuildRoleName          string
 	projectName                string
+	pipelineName               string
+	tfVersion                  string
 }
 
 // Cmd is the exported command for the AFT prerequisites.
@@ -137,6 +140,22 @@ func init() {
 		"CodeBuild default project to deploy AFT",
 	)
 
+	flags.StringVarP(
+		&args.pipelineName,
+		"codepipeline-pipeline-name",
+		"",
+		"aft-deployment-pipeline",
+		"CodePipeline default pipeline to deploy AFT",
+	)
+
+	flags.StringVarP(
+		&args.tfVersion,
+		"terraform-version",
+		"",
+		"1.5.6",
+		"Terraform version to be used in the deployment and for AFT",
+	)
+
 }
 
 func run(cmd *cobra.Command, _ []string) {
@@ -151,15 +170,6 @@ func run(cmd *cobra.Command, _ []string) {
 	codebuildTrustRelationshipService := "codebuild.amazonaws.com"
 	codePipelineTrustRelationshipService := "codepipeline.amazonaws.com"
 
-	// Ensure the tfstate bucket is created
-	aws.EnsureS3BucketExists(awsClient.GetS3Client(), terraformStateBucketName, aftManagementAccountID, "test-kms-key-id")
-
-	// Ensure the codepipeline bucket is created
-	aws.EnsureS3BucketExists(awsClient.GetS3Client(), interpolatedCodeSuiteBucketName, aftManagementAccountID, "test-kms-key-id")
-
-	// Ensure the repository is created
-	aws.EnsureCodeCommitRepoExists(awsClient.GetCodeCommitClient(), args.gitSourceRepo, args.gitSourceDescription)
-
 	// Ensure the Code Pipeline Service Role is created
 	aws.EnsureIamRoleExists(
 		awsClient.GetIamClient(),
@@ -170,6 +180,7 @@ func run(cmd *cobra.Command, _ []string) {
 		aftManagementAccountID,
 		args.gitSourceRepo,
 		interpolatedCodeSuiteBucketName,
+		terraformStateBucketName,
 	)
 
 	// Ensure the Code Build Service Role is created
@@ -182,6 +193,32 @@ func run(cmd *cobra.Command, _ []string) {
 		aftManagementAccountID,
 		args.gitSourceRepo,
 		interpolatedCodeSuiteBucketName,
+		terraformStateBucketName,
+	)
+
+	// Ensure the tfstate bucket is created
+	aws.EnsureS3BucketExists(
+		awsClient.GetS3Client(),
+		terraformStateBucketName,
+		aftManagementAccountID,
+		"test-kms-key-id",
+		args.codeBuildRoleName,
+	)
+
+	// Ensure the codepipeline bucket is created
+	aws.EnsureS3BucketExists(
+		awsClient.GetS3Client(),
+		interpolatedCodeSuiteBucketName,
+		aftManagementAccountID,
+		"test-kms-key-id",
+		args.codeBuildRoleName,
+	)
+
+	// Ensure the repository is created
+	aws.EnsureCodeCommitRepoExists(
+		awsClient.GetCodeCommitClient(),
+		args.gitSourceRepo,
+		args.gitSourceDescription,
 	)
 
 	// Ensure the Code Build Project is created
@@ -196,5 +233,27 @@ func run(cmd *cobra.Command, _ []string) {
 	)
 
 	// Ensure the Code Pipeline Pipe is created
+	aws.EnsureCodePipelineExists(
+		awsClient.CodePipelineClient(),
+		aftManagementAccountID,
+		args.codePipelineRoleName,
+		args.pipelineName,
+		interpolatedCodeSuiteBucketName,
+		args.gitSourceRepo,
+		args.branchName,
+		args.projectName,
+	)
 
+	initialcommit.GenerateCommitFiles(
+		args.gitSourceRepo,
+		terraformStateBucketName,
+		"us-east-1",
+		args.tfVersion,
+	)
+
+	initialcommit.PushCode(
+		args.gitSourceRepo,
+		"us-east-1",
+		args.gitSourceRepo,
+	)
 }

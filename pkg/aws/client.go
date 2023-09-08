@@ -54,6 +54,12 @@ type IAMClient interface {
 	GetRole(*iam.GetRoleInput) (*iam.GetRoleOutput, error)
 }
 
+// CodePipelineClient represents a client for Amazon Code Pipeline.
+type CodePipelineClient interface {
+	CreatePipeline(*codepipeline.CreatePipelineInput) (*codepipeline.CreatePipelineOutput, error)
+	ListPipelines(input *codepipeline.ListPipelinesInput) (*codepipeline.ListPipelinesOutput, error)
+}
+
 // Client struct implementing all the client interfaces
 type Client struct {
 	s3Client           s3iface.S3API
@@ -120,4 +126,9 @@ func (ac *Client) GetCodeCommitClient() codecommitiface.CodeCommitAPI {
 // CodebuildClient fetches the Codebuild Client and enables the cmd to use
 func (ac *Client) CodebuildClient() codebuildiface.CodeBuildAPI {
 	return ac.codebuildClient
+}
+
+// CodePipelineClient fetches the CodePipeline Client and enables the cmd to use
+func (ac *Client) CodePipelineClient() codepipelineiface.CodePipelineAPI {
+	return ac.codepipelineClient
 }

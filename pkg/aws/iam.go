@@ -20,7 +20,7 @@ import (
 )
 
 // EnsureIamRoleExists creates a new IAM Role with the given name, or returns success if it already exists.
-func EnsureIamRoleExists(client IAMClient, roleName string, trustRelationShipService string, policyName string, region string, aftAccount string, repoName string, bucketName string) (bool, error) {
+func EnsureIamRoleExists(client IAMClient, roleName string, trustRelationShipService string, policyName string, region string, aftAccount string, repoName string, bucketName string, terraformStateBucketName string) (bool, error) {
 
 	_, err := checkIfIamClientIsProvided(client)
 
@@ -49,6 +49,7 @@ func EnsureIamRoleExists(client IAMClient, roleName string, trustRelationShipSer
 			aftAccount,
 			repoName,
 			bucketName,
+			terraformStateBucketName,
 		)
 
 		if err != nil {
@@ -147,7 +148,7 @@ func checkIfIamClientIsProvided(client IAMClient) (bool, error) {
 }
 
 // func to create given role if it doesn't exist'
-func createRole(client IAMClient, roleName string, trustRelationShipService string, policyName string, region string, aftAccount string, repoName string, bucketName string) (bool, error) {
+func createRole(client IAMClient, roleName string, trustRelationShipService string, policyName string, region string, aftAccount string, repoName string, bucketName string, terraformStateBucketName string) (bool, error) {
 
 	// Assume Role Policy Document
 	const iamAssumeRolePolicyDocument = `{
@@ -176,6 +177,15 @@ func createRole(client IAMClient, roleName string, trustRelationShipService stri
 			  ]
 		   },
 		   {
+			"Resource":"*",
+			"Effect":"Allow",
+			"Action":[
+			   "logs:CreateLogGroup",
+			   "logs:CreateLogStream",
+			   "logs:PutLogEvents"
+			]
+ 		   },
+		   {
 			  "Resource":"arn:aws:codecommit:%s:%s:%s",
 			  "Effect":"Allow",
 			  "Action":[
@@ -195,6 +205,16 @@ func createRole(client IAMClient, roleName string, trustRelationShipService stri
 				"s3:GetObjectVersion",
 				"s3:GetBucketVersioning"
 			]
+			},
+			{
+				"Effect": "Allow",
+				"Resource": "arn:aws:s3:::%s/*",
+				"Action": [
+					"s3:PutObject",
+					"s3:GetObject",
+					"s3:GetObjectVersion",
+					"s3:GetBucketVersioning"
+				]
 			},
 		   {
 			  "Resource":"*",
@@ -232,7 +252,7 @@ func createRole(client IAMClient, roleName string, trustRelationShipService stri
 	}
 
 	putPolicyInput := &iam.PutRolePolicyInput{
-		PolicyDocument: aws.String(fmt.Sprintf(rolePolicyDocument, region, aftAccount, repoName, bucketName)),
+		PolicyDocument: aws.String(fmt.Sprintf(rolePolicyDocument, region, aftAccount, repoName, bucketName, terraformStateBucketName)),
 		PolicyName:     aws.String(policyName),
 		RoleName:       aws.String(roleName),
 	}

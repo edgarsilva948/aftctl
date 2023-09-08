@@ -64,7 +64,6 @@ func EnsureCodeBuildProjectExists(client CodeBuildClient, aftManagementAccountID
 
 func customCodeBuildInfoLog(logger *zap.Logger, msg string) {
 
-	// CodeBuild related emojis, you can choose others
 	codeEmoji := "🛠️ "
 	coloredMsg := "\x1b[36m" + codeEmoji + " " + msg + "\x1b[0m"
 

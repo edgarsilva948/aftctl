@@ -10,4 +10,6 @@ test
 tests
 cover.out
 
+aft-deployment
+
 pre-flight.sh

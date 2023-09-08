@@ -21,7 +21,7 @@ import (
 )
 
 // EnsureS3BucketExists creates a new S3 bucket with the given name, or returns success if it already exists.
-func EnsureS3BucketExists(client S3Client, bucketName string, aftManagementAccountID string, kmsKeyID string) (bool, error) {
+func EnsureS3BucketExists(client S3Client, bucketName string, aftManagementAccountID string, kmsKeyID string, codeBuildRole string) (bool, error) {
 
 	_, err := checkIfS3ClientIsProvided(client)
 
@@ -41,7 +41,7 @@ func EnsureS3BucketExists(client S3Client, bucketName string, aftManagementAccou
 	if !bucketExists {
 		fmt.Printf("S3 bucket %s doesn't exists... creating\n", bucketName)
 
-		_, err := createBucket(client, bucketName, aftManagementAccountID, kmsKeyID)
+		_, err := createBucket(client, bucketName, aftManagementAccountID, kmsKeyID, codeBuildRole)
 
 		if err != nil {
 			return false, err
@@ -67,7 +67,6 @@ func EnsureS3BucketExists(client S3Client, bucketName string, aftManagementAccou
 
 func customS3InfoLog(logger *zap.Logger, msg string) {
 
-	// CodeCommit related emojis, you can choose others
 	codeEmoji := "🪣"
 	coloredMsg := "\x1b[36m" + codeEmoji + " " + msg + "\x1b[0m"
 
@@ -172,7 +171,7 @@ func checkBucketNameCompliance(bucketName string) (bool, error) {
 }
 
 // func to create given bucket if it doesn't exist'
-func createBucket(client S3Client, bucketName string, aftManagementAccountID string, kmsKeyID string) (bool, error) {
+func createBucket(client S3Client, bucketName string, aftManagementAccountID string, kmsKeyID string, codeBuildRole string) (bool, error) {
 
 	_, err := client.CreateBucket(&s3.CreateBucketInput{
 		Bucket: aws.String(bucketName),
@@ -217,24 +216,40 @@ func createBucket(client S3Client, bucketName string, aftManagementAccountID str
 				"Sid": "AllowAccountWriteAndList",
 				"Effect": "Allow",
 				"Principal": {
-				"AWS": "arn:aws:iam::%s:root"
+					"AWS": "arn:aws:iam::%s:root"
 				},
 				"Action": [
-				"s3:PutObject",
-				"s3:PutObjectAcl",
-				"s3:ListBucket"
+					"s3:PutObject",
+					"s3:PutObjectAcl",
+					"s3:ListBucket"
 				],
 				"Resource": [
-				"arn:aws:s3:::%s/*",
-				"arn:aws:s3:::%s"
+					"arn:aws:s3:::%s/*",
+					"arn:aws:s3:::%s"
 				]
-			}
+			},
+			{
+				"Sid": "AllowCodeBuild",
+				"Effect": "Allow",
+				"Principal": {
+					"AWS": "arn:aws:iam::%s:role/%s"
+				},
+				"Action": [
+					"s3:PutObject",
+					"s3:PutObjectAcl",
+					"s3:ListBucket"
+				],
+				"Resource": [
+					"arn:aws:s3:::%s/*",
+					"arn:aws:s3:::%s"
+				]
+			}			
 		]
 	}`
 
 	_, err = client.PutBucketPolicy(&s3.PutBucketPolicyInput{
 		Bucket: aws.String(bucketName),
-		Policy: aws.String(fmt.Sprintf(WriteAndListPolicyTemplateForAccount, aftManagementAccountID, bucketName, bucketName)),
+		Policy: aws.String(fmt.Sprintf(WriteAndListPolicyTemplateForAccount, aftManagementAccountID, bucketName, bucketName, aftManagementAccountID, codeBuildRole, bucketName, bucketName)),
 	})
 
 	if err != nil {

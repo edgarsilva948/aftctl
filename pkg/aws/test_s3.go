@@ -76,7 +76,7 @@ var _ = ginkgo.Describe("Interacting with the S3 API", func() {
 						}, nil
 					},
 				}
-				ensure, err := EnsureS3BucketExists(mockClient, "another-bucket", "000000000000", "test-kms-key-id")
+				ensure, err := EnsureS3BucketExists(mockClient, "another-bucket", "000000000000", "test-kms-key-id", "codeBuildRole")
 				gomega.Expect(ensure).To(gomega.BeTrue())
 				gomega.Expect(err).To(gomega.BeNil())
 			})
@@ -106,7 +106,7 @@ var _ = ginkgo.Describe("Interacting with the S3 API", func() {
 						return nil, nil
 					},
 				}
-				ensure, err := EnsureS3BucketExists(mockClient, "new-bucket", "000000000000", "test-kms-key-id")
+				ensure, err := EnsureS3BucketExists(mockClient, "new-bucket", "000000000000", "test-kms-key-id", "codeBuildRole")
 				gomega.Expect(ensure).To(gomega.BeTrue())
 				gomega.Expect(err).To(gomega.BeNil())
 			})
@@ -127,7 +127,7 @@ var _ = ginkgo.Describe("Interacting with the S3 API", func() {
 						return nil
 					},
 				}
-				ensure, err := EnsureS3BucketExists(mockClient, "failed-bucket", "000000000000", "test-kms-key-id")
+				ensure, err := EnsureS3BucketExists(mockClient, "failed-bucket", "000000000000", "test-kms-key-id", "codeBuildRole")
 				gomega.Expect(ensure).To(gomega.BeFalse())
 				gomega.Expect(err).To(gomega.MatchError("AWS create bucket error"))
 			})
@@ -148,7 +148,7 @@ var _ = ginkgo.Describe("Interacting with the S3 API", func() {
 						return nil
 					},
 				}
-				ensure, err := EnsureS3BucketExists(mockClient, "existing-bucket", "000000000000", "test-kms-key-id")
+				ensure, err := EnsureS3BucketExists(mockClient, "existing-bucket", "000000000000", "test-kms-key-id", "codeBuildRole")
 				gomega.Expect(ensure).To(gomega.BeFalse())
 				gomega.Expect(err).To(gomega.MatchError("AWS WaitUntilBucketExists error"))
 			})
@@ -176,7 +176,7 @@ var _ = ginkgo.Describe("Interacting with the S3 API", func() {
 					},
 				}
 
-				success, err := EnsureS3BucketExists(mockClient, "validBucketName", "validAftManagementAccountId", "validKmsKeyID")
+				success, err := EnsureS3BucketExists(mockClient, "validBucketName", "validAftManagementAccountId", "validKmsKeyID", "codeBuildRole")
 
 				gomega.Expect(err).To(gomega.HaveOccurred())
 				gomega.Expect(success).To(gomega.BeFalse())
