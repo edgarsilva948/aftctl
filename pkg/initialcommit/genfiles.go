@@ -14,9 +14,12 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"github.com/edgarsilva948/aftctl/pkg/logging"
 )
+
+const fileEmoji = "📄"
+const dirEmoji = "📁"
+const zipEmoji = "📦"
 
 // GenerateCommitFiles creates the directory and files to be pushed
 func GenerateCommitFiles(
@@ -37,25 +40,13 @@ func GenerateCommitFiles(
 	terraformDistribution string,
 ) {
 
-	config := zap.NewDevelopmentConfig()
-	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	config.DisableCaller = true
-
-	fileEmoji := "📄"
-	dirEmoji := "📁"
-	zipEmoji := "📦"
-
-	logger, _ := config.Build()
-
-	defer logger.Sync()
-
 	// creating the dir with the repo name
-	message, err := ensureDirExists(repoName, dirEmoji)
+	message, color, err := ensureDirExists(repoName, dirEmoji)
 	if err != nil {
 		log.Fatalf("Error creating the directory: %v", err)
 	}
 
-	logger.Info(message)
+	logging.CustomLog(dirEmoji, color, message)
 
 	// creating the backend.tf file
 	message, err = createBackendtfFile(repoName, fileEmoji, tfBucket, region)
@@ -64,7 +55,7 @@ func GenerateCommitFiles(
 		log.Fatalf("Error creating the backend.tf file: %v", err)
 	}
 
-	logger.Info(message)
+	logging.CustomLog(fileEmoji, "green", message)
 
 	// creating the buildspec.yaml file
 	message, err = createBuildSpecFile(repoName, fileEmoji, tfVersion)
@@ -72,7 +63,7 @@ func GenerateCommitFiles(
 		log.Fatalf("Error creating the buildspec.yaml file: %v", err)
 	}
 
-	logger.Info(message)
+	logging.CustomLog(fileEmoji, "green", message)
 
 	// creating the main.tf file
 	message, err = createMainTFFile(repoName,
@@ -95,14 +86,14 @@ func GenerateCommitFiles(
 		log.Fatalf("Error creating the main.tf file: %v", err)
 	}
 
-	logger.Info(message)
+	logging.CustomLog(fileEmoji, "green", message)
 
 	message, err = zipDirectory(repoName, zipEmoji)
 	if err != nil {
 		fmt.Println("Error creating the zip file:", err)
 	}
 
-	logger.Info(message)
+	logging.CustomLog(zipEmoji, "green", message)
 
 }
 
@@ -124,8 +115,7 @@ func createBackendtfFile(dir string, fileEmoji string, tfBucket string, region s
 	}
 
 	message := "File ./" + dir + "/backend.tf successfully created"
-	coloredMsg := "\x1b[32m" + fileEmoji + " " + message + "\x1b[0m"
-	return coloredMsg, nil
+	return message, nil
 }
 
 func createBuildSpecFile(dir string, fileEmoji string, tfVersion string) (string, error) {
@@ -168,24 +158,24 @@ artifacts:
 	}
 
 	message := "File ./" + dir + "/buildspec.yaml successfully created"
-	coloredMsg := "\x1b[32m" + fileEmoji + " " + message + "\x1b[0m"
-	return coloredMsg, nil
+	return message, nil
 }
 
-func ensureDirExists(dir string, dirEmoji string) (string, error) {
+func ensureDirExists(dir string, dirEmoji string) (string, string, error) {
 	var err error
 	if _, err := os.Stat(dir); err == nil {
+		color := "blue"
 		message := "Directory " + dir + " already exists"
-		coloredMsg := "\x1b[36m" + dirEmoji + " " + message + "\x1b[0m"
-		return coloredMsg, nil
+		return message, color, nil
 
 	} else if os.IsNotExist(err) {
+		color := "green"
 		message := "Directory " + dir + " successfully created"
-		coloredMsg := "\x1b[32m" + dirEmoji + " " + message + "\x1b[0m"
-		return coloredMsg, os.Mkdir(dir, 0755)
+
+		return message, color, os.Mkdir(dir, 0755)
 	}
 
-	return "Error creating the repo directory", err
+	return "Error creating the repo directory", "red", err
 }
 
 func createMainTFFile(
@@ -272,8 +262,7 @@ module "aft" {
 	}
 
 	message := "File ./" + dir + "/main.tf successfully created"
-	coloredMsg := "\x1b[32m" + fileEmoji + " " + message + "\x1b[0m"
-	return coloredMsg, nil
+	return message, nil
 
 }
 
@@ -361,6 +350,5 @@ func zipDirectory(dir string, fileEmoji string) (string, error) {
 	}
 
 	message := "File ./" + dir + ".zip successfully created"
-	coloredMsg := "\x1b[32m" + fileEmoji + " " + message + "\x1b[0m"
-	return coloredMsg, nil
+	return message, nil
 }

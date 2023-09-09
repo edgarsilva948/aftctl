@@ -13,9 +13,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/codepipeline"
 	"github.com/edgarsilva948/aftctl/pkg/aws/tags"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"github.com/edgarsilva948/aftctl/pkg/logging"
 )
+
+const pipelineIcon = "👷"
 
 // EnsureCodePipelineExists creates a new codepipeline pipeline with the given name, or returns success if it already exists.
 func EnsureCodePipelineExists(client CodePipelineClient, aftManagementAccountID string, codePipelineRoleName string, pipelineName string, codeSuiteBucketName string, repoName string, branchName string, codeBuildProjectName string) (bool, error) {
@@ -36,7 +37,9 @@ func EnsureCodePipelineExists(client CodePipelineClient, aftManagementAccountID 
 	pipelineExists, _ := pipelineExists(client, pipelineName)
 
 	if !pipelineExists {
-		fmt.Printf("CodePipeline pipeline %s doesn't exists... creating\n", pipelineName)
+
+		message := fmt.Sprintf("CodePipeline pipeline %s doesn't exists... creating", pipelineName)
+		logging.CustomLog(pipelineIcon, "yellow", message)
 
 		_, err := createCodePipelinePipeline(client, aftManagementAccountID, codePipelineRoleName, pipelineName, codeSuiteBucketName, repoName, branchName, codeBuildProjectName)
 
@@ -47,27 +50,10 @@ func EnsureCodePipelineExists(client CodePipelineClient, aftManagementAccountID 
 		return true, nil
 	}
 
-	config := zap.NewDevelopmentConfig()
-	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	config.DisableCaller = true
-
-	logger, _ := config.Build()
-
-	defer logger.Sync()
-
 	message := fmt.Sprintf("CodePipeline Pipeline %s already exists", pipelineName)
-
-	customCodePipelineInfoLog(logger, message)
+	logging.CustomLog(pipelineIcon, "blue", message)
 
 	return true, nil
-}
-
-func customCodePipelineInfoLog(logger *zap.Logger, msg string) {
-
-	codeEmoji := "👷 "
-	coloredMsg := "\x1b[36m" + codeEmoji + " " + msg + "\x1b[0m"
-
-	logger.Info(coloredMsg)
 }
 
 // func to create the AFT CodePipeline pipe if it doesn't exist'
@@ -144,6 +130,9 @@ func createCodePipelinePipeline(client CodePipelineClient, aftManagementAccountI
 	if err != nil {
 		log.Fatalf("Error creating project: %v", err)
 	}
+
+	message := fmt.Sprintf("CodePipeline Pipeline %s successfully created", pipelineName)
+	logging.CustomLog(pipelineIcon, "green", message)
 
 	return true, nil
 }

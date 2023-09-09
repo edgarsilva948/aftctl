@@ -13,7 +13,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/edgarsilva948/aftctl/pkg/aws/tags"
+	"github.com/edgarsilva948/aftctl/pkg/logging"
 )
+
+const cfnIcon = "📚"
 
 // EnsureCloudformationExists creates a new cloudformation stack with the given name, or returns success if it already exists.
 func EnsureCloudformationExists(client CloudformationClient, stackName string, repoName string, repoDescription string, bucketName string, zipFileName string) (bool, error) {
@@ -34,7 +37,9 @@ func EnsureCloudformationExists(client CloudformationClient, stackName string, r
 	stackExists, _ := stackExists(client, stackName)
 
 	if !stackExists {
-		fmt.Printf("Cloudformation stack %s doesn't exists... creating\n", stackName)
+
+		message := fmt.Sprintf("Cloudformation stack %s doesn't exists... creating", stackName)
+		logging.CustomLog(cfnIcon, "yellow", message)
 
 		_, err := createStack(client, stackName, repoName, repoDescription, bucketName, zipFileName)
 
@@ -44,6 +49,9 @@ func EnsureCloudformationExists(client CloudformationClient, stackName string, r
 
 		return true, nil
 	}
+
+	message := fmt.Sprintf("Cloudformation Stack %s already exists", stackName)
+	logging.CustomLog(cfnIcon, "blue", message)
 
 	return true, nil
 
@@ -147,6 +155,8 @@ Resources:
 		log.Fatalf("Error creating CloudFormation stack: %v", err)
 	}
 
-	fmt.Printf("Cloudformation stack %s successfuly created", stackName)
+	message := fmt.Sprintf("Cloudformation stack %s successfuly created", stackName)
+	logging.CustomLog(secIcon, "green", message)
+
 	return true, nil
 }

@@ -9,13 +9,17 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/codebuild"
 	"github.com/edgarsilva948/aftctl/pkg/aws/tags"
+	"github.com/edgarsilva948/aftctl/pkg/logging"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
+
+const buildIcon = "🛠️ "
 
 // EnsureCodeBuildProjectExists creates a new codebuild project with the given name, or returns success if it already exists.
 func EnsureCodeBuildProjectExists(client CodeBuildClient, aftManagementAccountID string, codeBuildDockerImage string, projectName string, repoName string, repoBranch string, codeBuildRoleName string) (bool, error) {
@@ -36,7 +40,9 @@ func EnsureCodeBuildProjectExists(client CodeBuildClient, aftManagementAccountID
 	projectExists, _ := projectExists(client, projectName)
 
 	if !projectExists {
-		fmt.Printf("CodeBuild project %s doesn't exists... creating\n", projectName)
+
+		message := fmt.Sprintf("CodeBuild project %s doesn't exists... creating", projectName)
+		logging.CustomLog(buildIcon, "yellow", message)
 
 		_, err := createCodeBuildProject(client, aftManagementAccountID, codeBuildDockerImage, projectName, repoName, repoBranch, codeBuildRoleName)
 
@@ -50,24 +56,18 @@ func EnsureCodeBuildProjectExists(client CodeBuildClient, aftManagementAccountID
 	config := zap.NewDevelopmentConfig()
 	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	config.DisableCaller = true
+	config.EncoderConfig.EncodeTime = zapcore.TimeEncoder(func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+		enc.AppendString(t.Format("02/01/2006 15:04:01"))
+	})
 
 	logger, _ := config.Build()
 
 	defer logger.Sync()
 
 	message := fmt.Sprintf("CodeBuild Project %s already exists", projectName)
-
-	customCodeBuildInfoLog(logger, message)
+	logging.CustomLog(buildIcon, "blue", message)
 
 	return true, nil
-}
-
-func customCodeBuildInfoLog(logger *zap.Logger, msg string) {
-
-	codeEmoji := "🛠️ "
-	coloredMsg := "\x1b[36m" + codeEmoji + " " + msg + "\x1b[0m"
-
-	logger.Info(coloredMsg)
 }
 
 func checkIfProjectExists(client CodeBuildClient, projectName string) (bool, error) {
@@ -144,6 +144,9 @@ func createCodeBuildProject(client CodeBuildClient, aftManagementAccountID strin
 	if err != nil {
 		log.Fatalf("Error creating project: %v", err)
 	}
+
+	message := fmt.Sprintf("CodeBuild Project %s successfully created", projectName)
+	logging.CustomLog(buildIcon, "green", message)
 
 	return true, nil
 }

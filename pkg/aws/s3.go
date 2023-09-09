@@ -13,12 +13,13 @@ import (
 	"strings"
 
 	"github.com/edgarsilva948/aftctl/pkg/aws/tags"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"github.com/edgarsilva948/aftctl/pkg/logging"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
+
+const bucketIcon = "🪣 "
 
 // EnsureS3BucketExists creates a new S3 bucket with the given name, or returns success if it already exists.
 func EnsureS3BucketExists(client S3Client, bucketName string, aftManagementAccountID string, kmsKeyID string, codeBuildRole string) (bool, error) {
@@ -39,7 +40,9 @@ func EnsureS3BucketExists(client S3Client, bucketName string, aftManagementAccou
 	bucketExists, _ := bucketExists(client, bucketName)
 
 	if !bucketExists {
-		fmt.Printf("S3 bucket %s doesn't exists... creating\n", bucketName)
+
+		message := fmt.Sprintf("S3 bucket %s doesn't exists... creating", bucketName)
+		logging.CustomLog(bucketIcon, "yellow", message)
 
 		_, err := createBucket(client, bucketName, aftManagementAccountID, kmsKeyID, codeBuildRole)
 
@@ -50,27 +53,10 @@ func EnsureS3BucketExists(client S3Client, bucketName string, aftManagementAccou
 		return true, nil
 	}
 
-	config := zap.NewDevelopmentConfig()
-	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	config.DisableCaller = true
-
-	logger, _ := config.Build()
-
-	defer logger.Sync()
-
-	message := fmt.Sprintf(" S3 Bucket %s already exists", bucketName)
-
-	customS3InfoLog(logger, message)
+	message := fmt.Sprintf("S3 Bucket %s already exists", bucketName)
+	logging.CustomLog(bucketIcon, "blue", message)
 
 	return true, nil
-}
-
-func customS3InfoLog(logger *zap.Logger, msg string) {
-
-	codeEmoji := "🪣"
-	coloredMsg := "\x1b[36m" + codeEmoji + " " + msg + "\x1b[0m"
-
-	logger.Info(coloredMsg)
 }
 
 // BucketExists checks if a given S3 bucket exists.
@@ -272,6 +258,7 @@ func createBucket(client S3Client, bucketName string, aftManagementAccountID str
 		return false, err
 	}
 
-	fmt.Printf("S3 Bucket %s successfully created\n", bucketName)
+	message := fmt.Sprintf("S3 Bucket %s successfully created", bucketName)
+	logging.CustomLog(bucketIcon, "green", message)
 	return true, nil
 }

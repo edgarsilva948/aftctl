@@ -31,6 +31,7 @@ var args struct {
 	aftFeatureDeleteDefaultVPCsEnabled bool
 
 	// deployment resources args
+	region                     string
 	branchName                 string
 	gitSourceRepo              string
 	codeBuildDockerImage       string
@@ -65,6 +66,13 @@ func init() {
 		"terraform-state-bucket-name",
 		"",
 		"Name of the deployment terraform state bucket",
+	)
+
+	flags.StringVar(
+		&args.region,
+		"region",
+		"",
+		"The region where the aft deployment resources will be created",
 	)
 
 	flags.StringVar(
@@ -270,7 +278,7 @@ func run(cmd *cobra.Command, _ []string) {
 		args.codePipelineRoleName,
 		codePipelineTrustRelationshipService,
 		args.codePipelineRolePolicyName,
-		"us-east-1",
+		args.region,
 		aftManagementAccountID,
 		args.gitSourceRepo,
 		interpolatedCodeSuiteBucketName,
@@ -283,7 +291,7 @@ func run(cmd *cobra.Command, _ []string) {
 		args.codeBuildRoleName,
 		codebuildTrustRelationshipService,
 		args.codeBuildRolePolicyName,
-		"us-east-1",
+		args.region,
 		aftManagementAccountID,
 		args.gitSourceRepo,
 		interpolatedCodeSuiteBucketName,
@@ -312,7 +320,7 @@ func run(cmd *cobra.Command, _ []string) {
 	initialcommit.GenerateCommitFiles(
 		args.gitSourceRepo,
 		terraformStateBucketName,
-		"us-east-1",
+		args.region,
 		args.tfVersion,
 		args.ctManagementAccountID,
 		args.logArchiveAccountID,

@@ -22,4 +22,5 @@ Deploy AFT from from stdin
 
 * [aftctl](aftctl.md)	 - Command line tool for Amazon Account Factory for Terraform (AFT).
 * [aftctl deploy aft](aftctl_deploy_aft.md)	 - Setup AFT in AFT-Management Account
+* [aftctl deploy prereqs](aftctl_deploy_prereqs.md)	 - Setup AFT prerequisites in AFT-Management Account
 

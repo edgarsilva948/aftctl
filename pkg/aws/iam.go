@@ -14,10 +14,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/edgarsilva948/aftctl/pkg/aws/tags"
-
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"github.com/edgarsilva948/aftctl/pkg/logging"
 )
+
+const secIcon = "🔒"
 
 // EnsureIamRoleExists creates a new IAM Role with the given name, or returns success if it already exists.
 func EnsureIamRoleExists(client IAMClient, roleName string, trustRelationShipService string, policyName string, region string, aftAccount string, repoName string, bucketName string, terraformStateBucketName string) (bool, error) {
@@ -38,7 +38,9 @@ func EnsureIamRoleExists(client IAMClient, roleName string, trustRelationShipSer
 	roleExists, _ := checkIfRoleExists(client, roleName)
 
 	if !roleExists {
-		fmt.Printf("IAM Role %s doesn't exists... creating\n", roleName)
+		message := fmt.Sprintf("IAM Role %s doesn't exists... creating", roleName)
+
+		logging.CustomLog(secIcon, "yellow", message)
 
 		_, err := createRole(
 			client,
@@ -59,27 +61,11 @@ func EnsureIamRoleExists(client IAMClient, roleName string, trustRelationShipSer
 		return true, nil
 	}
 
-	config := zap.NewDevelopmentConfig()
-	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	config.DisableCaller = true
-	logger, _ := config.Build()
-
-	defer logger.Sync()
-
 	message := fmt.Sprintf("IAM Role %s already exists", roleName)
 
-	customIamInfoLog(logger, message)
+	logging.CustomLog(secIcon, "blue", message)
 
 	return true, nil
-}
-
-func customIamInfoLog(logger *zap.Logger, msg string) {
-
-	// Security-related emoji
-	lockEmoji := "🔒"
-	coloredMsg := "\x1b[32m" + lockEmoji + " " + msg + "\x1b[0m"
-
-	logger.Info(coloredMsg)
 }
 
 // func to verify if the given iam role is provided
@@ -262,6 +248,8 @@ func createRole(client IAMClient, roleName string, trustRelationShipService stri
 		return false, err
 	}
 
-	fmt.Printf("IAM Role %s successfully created\n", roleName)
+	message := fmt.Sprintf("IAM Role %s successfully created", roleName)
+	logging.CustomLog(secIcon, "green", message)
+
 	return true, nil
 }

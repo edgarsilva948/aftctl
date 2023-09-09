@@ -12,7 +12,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/edgarsilva948/aftctl/pkg/logging"
 )
+
+const uploadIcon = "⬆️ "
 
 // UploadToS3 to upload the zip file to S3 Bucket
 func UploadToS3(client S3Client, bucketName string, bucketKey string, fileName string) error {
@@ -32,6 +35,9 @@ func UploadToS3(client S3Client, bucketName string, bucketKey string, fileName s
 	if err != nil {
 		return fmt.Errorf("failed to upload file, %w", err)
 	}
+
+	message := fmt.Sprintf("zip file %s successfully uploaded", fileName)
+	logging.CustomLog(uploadIcon, "green", message)
 
 	return nil
 }

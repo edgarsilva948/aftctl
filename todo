@@ -5,14 +5,15 @@
 - check terraform variables - DONE
 - check VCS variables - DONE
 - check aft bool params - DONE
-
 - Create IAM roles - DONE
 - Create CodePipeline - DONE
-
 - enable Logs - DONE
-- enable bucket security flags - DO
+- adjust log time format - DONE
+- create cloudformation - DONE
+- adjust log colors (blue = already exists and green = created) - DONE
+- log when zip is uploaded - DONE
 
-- adjust log colors (blue = already exists and green = created) - DO
-- log when zip is uploaded - DO
+- adjust cloudformation checks and logs - DO
+- enable bucket security flags - DO
 - check if repo name already exists before cfn - DO
-- adjust log time format - DO
+- change the bucket names to use the management ID - DO
