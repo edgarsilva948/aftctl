@@ -16,4 +16,10 @@
 - adjust cloudformation checks and logs - DO
 - enable bucket security flags - DO
 - check if repo name already exists before cfn - DO
-- change the bucket names to use the management ID - DO
+
+
+
+- implement goreleaser to create the binaries - DO
+- implement godocs for external documentation - DO
+- improve the README.md file to describe either the installation and the usage - DO
+- change the badges to use a more modern version - DO

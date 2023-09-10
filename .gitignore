@@ -17,3 +17,5 @@ pre-flight.sh
 
 aft-deployment-pipeline.yaml
 aft-deployment.zip
+
+*.cast

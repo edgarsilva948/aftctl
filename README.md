@@ -1,44 +1,29 @@
-# `aftctl` - A CLI for Amazon Account Factory for Terraform (AFT)
+<p align="center">
+  <img alt="aftctlGopher Logo" src="./assets/images/aftctl-gopher.png" height="140" />
+  <h3 align="center">aftctl</h3>
+  <p align="center">Facilitates the AFT deployment process.</p>
+</p>
+
+---
+
+`aftctl` is a CLI designed to simplify the deployment process of Amazon Account Factory for Terraform (AFT). It follows best practices for Terraform state file isolation, making it easier for you to manage state files securely and efficiently. Additionally, `aftctl` facilitates seamless upgrades and modifications to your AFT configurations in the future.
+
+---
+
+[![asciicast](https://asciinema.org/a/607252.svg)](https://asciinema.org/a/607252)
+
+---
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/edgarsilva948/aftctl)](https://goreportcard.com/report/github.com/edgarsilva948/aftctl) [![codecov](https://codecov.io/gh/edgarsilva948/aftctl/graph/badge.svg?token=PIGXFII1NG)](https://codecov.io/gh/edgarsilva948/aftctl) [![CI](https://github.com/edgarsilva948/aftctl/actions/workflows/main.yml/badge.svg)](https://github.com/edgarsilva948/aftctl/actions/workflows/main.yml)
 
 
-`aftctl` is a straightforward command-line interface (CLI) tool to perform the AFT deploy. 
+## Get Aftctl
 
-## Deployment Prerequisites
+- TBD
 
-Before you configure and launch your AFT environment, ensure you have the following prerequisites:
+## Documentation
 
-- **An AWS Control Tower landing zone**: For more information, see [Plan your AWS Control Tower landing zone](#).
-  
-- **A home Region for your AWS Control Tower landing zone**: For more information, see [How AWS Regions work with AWS Control Tower](#).
+- TBD
 
-- **Terraform version and distribution**: For more information, see [Terraform and AFT versions](#).
 
-- **VCS Provider**: A Version Control System (VCS) provider for tracking and managing changes to code and other files.
 
-  > **Note**: By default, AFT uses AWS CodeCommit. For more details, see [What is AWS CodeCommit?](#) in the AWS CodeCommit User Guide.
-  >
-  > If you'd like to choose a different VCS provider, see [Alternatives for version control of source code in AFT](#).
-
-- **Runtime Environment**: A suitable environment where you can run the Terraform module that installs AFT.
-
-- **AFT Feature Options**: For more information, see [Enable feature options](#).
-
-## Installation
-
-`aftctl` is available for installation as outlined below. 
-
-### For Unix
-
-To download the latest release, run:
-
-```sh
-TBD
-```
-
-### For Windows
-
-```sh
-TBD
-```
