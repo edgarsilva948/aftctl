@@ -2,11 +2,9 @@
 Copyright © 2023 Edgar Costa edgarsilva948@gmail.com
 */
 
-package prereqs
+package deploy
 
 import (
-	"strings"
-
 	"github.com/edgarsilva948/aftctl/pkg/aws"
 	"github.com/edgarsilva948/aftctl/pkg/initialcommit"
 	"github.com/spf13/cobra"
@@ -47,7 +45,7 @@ var args struct {
 
 // Cmd is the exported command for the AFT prerequisites.
 var Cmd = &cobra.Command{
-	Use:   "prereqs",
+	Use:   "deploy",
 	Short: "Setup AFT prerequisites in AFT-Management Account",
 	Long:  "Setup AFT prerequisites in AFT-Management Account",
 	Example: `# aftctl usage examples"
@@ -61,10 +59,11 @@ func init() {
 	flags := Cmd.Flags()
 	flags.SortFlags = false
 
-	flags.StringVar(
+	flags.StringVarP(
 		&args.terraformStateBucketName,
 		"terraform-state-bucket-name",
 		"",
+		"aft-deployment-terraform-tfstate",
 		"Name of the deployment terraform state bucket",
 	)
 
@@ -259,12 +258,8 @@ func init() {
 func run(cmd *cobra.Command, _ []string) {
 	awsClient := aws.NewClient()
 
-	// Trim names to remove any leading/trailing invisible characters
-	terraformStateBucketName := strings.Trim(args.terraformStateBucketName, " \t")
-	aftManagementAccountID := strings.Trim(args.aftManagementAccountID, " \t")
-
 	interpolatedCodeSuiteBucketName := args.aftManagementAccountID + "-" + args.codePipelineBucketName
-
+	interpolatedTerraformBucketName := args.aftManagementAccountID + "-" + args.terraformStateBucketName
 	interpolatedZIPFileName := args.gitSourceRepo + ".zip"
 
 	interpolatedCloudformationStackName := args.gitSourceRepo + "-cloudformation-stack"
@@ -279,10 +274,10 @@ func run(cmd *cobra.Command, _ []string) {
 		codePipelineTrustRelationshipService,
 		args.codePipelineRolePolicyName,
 		args.region,
-		aftManagementAccountID,
+		args.aftManagementAccountID,
 		args.gitSourceRepo,
 		interpolatedCodeSuiteBucketName,
-		terraformStateBucketName,
+		interpolatedTerraformBucketName,
 	)
 
 	// Ensure the Code Build Service Role is created
@@ -292,17 +287,17 @@ func run(cmd *cobra.Command, _ []string) {
 		codebuildTrustRelationshipService,
 		args.codeBuildRolePolicyName,
 		args.region,
-		aftManagementAccountID,
+		args.aftManagementAccountID,
 		args.gitSourceRepo,
 		interpolatedCodeSuiteBucketName,
-		terraformStateBucketName,
+		interpolatedTerraformBucketName,
 	)
 
 	// Ensure the tfstate bucket is created
 	aws.EnsureS3BucketExists(
 		awsClient.GetS3Client(),
-		terraformStateBucketName,
-		aftManagementAccountID,
+		interpolatedTerraformBucketName,
+		args.aftManagementAccountID,
 		"test-kms-key-id",
 		args.codeBuildRoleName,
 	)
@@ -311,7 +306,7 @@ func run(cmd *cobra.Command, _ []string) {
 	aws.EnsureS3BucketExists(
 		awsClient.GetS3Client(),
 		interpolatedCodeSuiteBucketName,
-		aftManagementAccountID,
+		args.aftManagementAccountID,
 		"test-kms-key-id",
 		args.codeBuildRoleName,
 	)
@@ -319,7 +314,7 @@ func run(cmd *cobra.Command, _ []string) {
 	// Ensure the CodeCommit repo is created with initial code
 	initialcommit.GenerateCommitFiles(
 		args.gitSourceRepo,
-		terraformStateBucketName,
+		interpolatedTerraformBucketName,
 		args.region,
 		args.tfVersion,
 		args.ctManagementAccountID,
@@ -343,13 +338,6 @@ func run(cmd *cobra.Command, _ []string) {
 	)
 
 	// Ensure the repository is created
-	// aws.EnsureCodeCommitRepoExists(
-	// 	awsClient.GetCodeCommitClient(),
-	// 	args.gitSourceRepo,
-	// 	args.gitSourceDescription,
-	// )
-
-	// Ensure the repository is created
 	aws.EnsureCloudformationExists(
 		awsClient.CloudformationClient(),
 		interpolatedCloudformationStackName,
@@ -362,7 +350,7 @@ func run(cmd *cobra.Command, _ []string) {
 	// Ensure the Code Build Project is created
 	aws.EnsureCodeBuildProjectExists(
 		awsClient.CodebuildClient(),
-		aftManagementAccountID,
+		args.aftManagementAccountID,
 		args.codeBuildDockerImage,
 		args.projectName,
 		args.gitSourceRepo,
@@ -373,7 +361,7 @@ func run(cmd *cobra.Command, _ []string) {
 	// Ensure the Code Pipeline Pipe is created
 	aws.EnsureCodePipelineExists(
 		awsClient.CodePipelineClient(),
-		aftManagementAccountID,
+		args.aftManagementAccountID,
 		args.codePipelineRoleName,
 		args.pipelineName,
 		interpolatedCodeSuiteBucketName,

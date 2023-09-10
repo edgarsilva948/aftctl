@@ -1,4 +1,4 @@
-package deploy_test
+package deploy
 
 import (
 	ginkgo "github.com/onsi/ginkgo/v2"
@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestDeploy(t *testing.T) {
+func TestPrereqs(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
-	ginkgo.RunSpecs(t, "Deploy Suite")
+	ginkgo.RunSpecs(t, "deploy Suite")
 }

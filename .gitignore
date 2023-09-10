@@ -11,6 +11,7 @@ tests
 cover.out
 
 aft-deployment
+example-output
 
 pre-flight.sh
 

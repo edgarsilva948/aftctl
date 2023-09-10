@@ -117,30 +117,28 @@ func createBackendtfFile(dir string, fileEmoji string, tfBucket string, region s
 	message := "File ./" + dir + "/backend.tf successfully created"
 	return message, nil
 }
-
 func createBuildSpecFile(dir string, fileEmoji string, tfVersion string) (string, error) {
-
-	content := fmt.Sprintf(`version: 0.2
+	buildSpecTemplate := `version: 0.2
 env:
   variables:
     TERRAFORM_VERSION: "%s"
 phases:
   install:
     commands:
-	  - |
+      - |
         set -e
-		echo $TERRAFORM_VERSION
-		echo "Installing terraform"
-		cd /tmp
-		curl -q -o terraform_${TERRAFORM_VERSION}_linux_amd64.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-		unzip -q -o terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-		mv terraform /usr/local/bin/
-		terraform -no-color --version
+        echo $TERRAFORM_VERSION
+        echo "Installing terraform"
+        cd /tmp
+        curl -q -o terraform_${TERRAFORM_VERSION}_linux_amd64.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+        unzip -q -o terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+        mv terraform /usr/local/bin/
+        terraform -no-color --version
   build:
     on-failure: ABORT
-	commands:
-	  - |
-	    cd $CODEBUILD_SRC_DIR/terraform
+    commands:
+      - |
+        cd $CODEBUILD_SRC_DIR/terraform
         echo "Running terraform apply"
         terraform apply -no-color -input=false --auto-approve "output.tfplan"
   post_build:
@@ -149,7 +147,8 @@ phases:
 artifacts:
   files:
     - '**/*'
-`, tfVersion)
+`
+	content := fmt.Sprintf(buildSpecTemplate, tfVersion)
 
 	path := filepath.Join(dir, "buildspec.yaml")
 	err := os.WriteFile(path, []byte(content), 0644)
@@ -157,7 +156,7 @@ artifacts:
 		return "Failed to write to buildspec.yaml", err
 	}
 
-	message := "File ./" + dir + "/buildspec.yaml successfully created"
+	message := fmt.Sprintf("File ./%s/buildspec.yaml successfully created", dir)
 	return message, nil
 }
 

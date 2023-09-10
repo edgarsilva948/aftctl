@@ -1,4 +1,4 @@
-package prereqs_test
+package aft
 
 import (
 	ginkgo "github.com/onsi/ginkgo/v2"
@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestPrereqs(t *testing.T) {
+func TestDeploy(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
-	ginkgo.RunSpecs(t, "Prereqs Suite")
+	ginkgo.RunSpecs(t, "aft Suite")
 }

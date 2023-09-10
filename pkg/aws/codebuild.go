@@ -120,20 +120,6 @@ func createCodeBuildProject(client CodeBuildClient, aftManagementAccountID strin
 					Name:  aws.String("REPOSITORY_BRANCH"),
 					Value: aws.String(repoBranch),
 				},
-				// the aft deployment needs to be connected in the management account
-				// https://docs.aws.amazon.com/controltower/latest/userguide/aft-getting-started.html
-				{
-					Name:  aws.String("MANAGEMENT_ACCOUNT_TEMPORARY_KEY_ID"),
-					Value: aws.String(""),
-				},
-				{
-					Name:  aws.String("MANAGEMENT_ACCOUNT_TEMPORARY_ACCESS_KEY"),
-					Value: aws.String(""),
-				},
-				{
-					Name:  aws.String("MANAGEMENT_ACCOUNT_TEMPORARY_SESSION_TOKEN"),
-					Value: aws.String(""),
-				},
 			},
 		},
 		ServiceRole: aws.String(codeBuildRoleArn),

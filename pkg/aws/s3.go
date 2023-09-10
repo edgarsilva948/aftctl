@@ -9,8 +9,10 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/edgarsilva948/aftctl/pkg/aws/tags"
 	"github.com/edgarsilva948/aftctl/pkg/logging"
@@ -169,7 +171,8 @@ func createBucket(client S3Client, bucketName string, aftManagementAccountID str
 	}
 
 	// Wait until bucket is created before finishing
-	fmt.Printf("Waiting for bucket %q to be created...\n", bucketName)
+	message := fmt.Sprintf("Waiting for bucket %q to be created...", bucketName)
+	logging.CustomLog(bucketIcon, "yellow", message)
 
 	err = client.WaitUntilBucketExists(&s3.HeadBucketInput{
 		Bucket: aws.String(bucketName),
@@ -233,14 +236,36 @@ func createBucket(client S3Client, bucketName string, aftManagementAccountID str
 		]
 	}`
 
-	_, err = client.PutBucketPolicy(&s3.PutBucketPolicyInput{
-		Bucket: aws.String(bucketName),
-		Policy: aws.String(fmt.Sprintf(WriteAndListPolicyTemplateForAccount, aftManagementAccountID, bucketName, bucketName, aftManagementAccountID, codeBuildRole, bucketName, bucketName)),
-	})
+	// retries to put the bucket policy due API consistency
+	const maxRetries = 5
+	const initialDelay = 10
+	delay := initialDelay
 
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		return false, err
+	var lastErr error
+
+	time.Sleep(time.Duration(initialDelay) * time.Second)
+
+	for i := 0; i < maxRetries; i++ {
+
+		_, err = client.PutBucketPolicy(&s3.PutBucketPolicyInput{
+			Bucket: aws.String(bucketName),
+			Policy: aws.String(fmt.Sprintf(WriteAndListPolicyTemplateForAccount, aftManagementAccountID, bucketName, bucketName, aftManagementAccountID, codeBuildRole, bucketName, bucketName)),
+		})
+
+		if err == nil {
+			break
+		} else {
+			lastErr = err
+		}
+
+		time.Sleep(time.Duration(delay) * time.Second)
+		delay *= 2
+		delay += rand.Intn(10)
+	}
+
+	if lastErr != nil {
+		fmt.Printf("Error: %v\n", lastErr)
+		return false, lastErr
 	}
 
 	_, err = client.PutBucketTagging(&s3.PutBucketTaggingInput{
@@ -258,7 +283,8 @@ func createBucket(client S3Client, bucketName string, aftManagementAccountID str
 		return false, err
 	}
 
-	message := fmt.Sprintf("S3 Bucket %s successfully created", bucketName)
+	message = fmt.Sprintf("S3 Bucket %s successfully created", bucketName)
 	logging.CustomLog(bucketIcon, "green", message)
+
 	return true, nil
 }

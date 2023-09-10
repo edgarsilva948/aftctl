@@ -11,8 +11,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/edgarsilva948/aftctl/cmd/aft"
 	"github.com/edgarsilva948/aftctl/cmd/completion"
-	"github.com/edgarsilva948/aftctl/cmd/deploy"
 	"github.com/edgarsilva948/aftctl/cmd/docs"
 	"github.com/edgarsilva948/aftctl/cmd/version"
 
@@ -35,7 +35,7 @@ func init() {
 	root.AddCommand(completion.Cmd)
 	root.AddCommand(docs.Cmd)
 	root.AddCommand(version.Cmd)
-	root.AddCommand(deploy.Cmd)
+	root.AddCommand(aft.Cmd)
 }
 
 func main() {
