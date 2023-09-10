@@ -226,7 +226,7 @@ func init() {
 		"aft-enable-metrics-reporting",
 		"",
 		true,
-		"Wheter to enable reporting metrics or not",
+		"Whether to enable reporting metrics or not",
 	)
 
 	flags.BoolVarP(
@@ -234,7 +234,7 @@ func init() {
 		"aft-enable-cloudtrail-data-events",
 		"",
 		true,
-		"Wheter to enable cloudtrail data events",
+		"Whether to enable cloudtrail data events",
 	)
 
 	flags.BoolVarP(
@@ -242,7 +242,7 @@ func init() {
 		"aft-enable-enterprise-support",
 		"",
 		true,
-		"Wheter to enable enterprise support in created accounts",
+		"Whether to enable enterprise support in created accounts",
 	)
 
 	flags.BoolVarP(
@@ -250,7 +250,7 @@ func init() {
 		"aft-delete-default-vpc",
 		"",
 		true,
-		"Wheter to enable enterprise support in created accounts",
+		"Whether to enable enterprise support in created accounts",
 	)
 
 }

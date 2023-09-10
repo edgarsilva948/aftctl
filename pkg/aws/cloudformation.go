@@ -155,7 +155,7 @@ Resources:
 		log.Fatalf("Error creating CloudFormation stack: %v", err)
 	}
 
-	message := fmt.Sprintf("Cloudformation stack %s successfuly created", stackName)
+	message := fmt.Sprintf("Cloudformation stack %s successfully created", stackName)
 	logging.CustomLog(secIcon, "green", message)
 
 	return true, nil

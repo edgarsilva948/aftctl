@@ -153,6 +153,6 @@ func createRepo(client CodeCommitClient, repoName string, description string) (b
 		return false, err
 	}
 
-	fmt.Printf("CodeCommit repository %s successfuly created", repoName)
+	fmt.Printf("CodeCommit repository %s successfully created", repoName)
 	return true, nil
 }
