@@ -44,7 +44,6 @@ var _ = ginkgo.Describe("UploadToS3", func() {
 	ginkgo.When("there is an error reading the file", func() {
 		ginkgo.It("should return an error", func() {
 			fileName = "nonexistent-file"
-
 			err := UploadToS3(mockS3Client, bucketName, bucketKey, fileName)
 			gomega.Expect(err).To(gomega.HaveOccurred())
 		})
@@ -55,7 +54,6 @@ var _ = ginkgo.Describe("UploadToS3", func() {
 			mockS3Client.PutObjectFunc = func(input *s3.PutObjectInput) (*s3.PutObjectOutput, error) {
 				return nil, errors.New("upload error")
 			}
-
 			err := UploadToS3(mockS3Client, bucketName, bucketKey, fileName)
 			gomega.Expect(err).To(gomega.HaveOccurred())
 		})

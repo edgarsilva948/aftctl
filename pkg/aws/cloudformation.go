@@ -87,8 +87,8 @@ func checkStackNameCompliance(stackName string) (bool, error) {
 	length := len(stackName)
 
 	// stack names must be between 3 (min) and 100 (max) characters long.
-	if length < 1 || length > 100 {
-		return false, errors.New("stack name must be between 1 and 100 characters long")
+	if length < 3 || length > 100 {
+		return false, errors.New("stack name must be between 3 and 100 characters long")
 	}
 
 	pattern := `^[a-zA-Z0-9-_]+$`
