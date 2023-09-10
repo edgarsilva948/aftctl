@@ -19,3 +19,4 @@ aft-deployment-pipeline.yaml
 aft-deployment.zip
 
 *.cast
+dist/
