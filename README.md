@@ -10,7 +10,7 @@
 
 ---
 
-[![asciicast](https://asciinema.org/a/607252.svg)](https://asciinema.org/a/607252)
+<script src="https://asciinema.org/a/14.js" id="asciicast-14" async data-autoplay="true" data-size="big"></script>
 
 ---
 
