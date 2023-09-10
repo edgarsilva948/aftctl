@@ -134,17 +134,12 @@ func (ac *Client) GetCodeCommitClient() codecommitiface.CodeCommitAPI {
 	return ac.codecommitClient
 }
 
-// CodebuildClient fetches the Codebuild Client and enables the cmd to use
-func (ac *Client) CodebuildClient() codebuildiface.CodeBuildAPI {
+// GetCodeBuildClient returns the client for AWS CodeBuild service.
+func (ac *Client) GetCodeBuildClient() codebuildiface.CodeBuildAPI {
 	return ac.codebuildClient
 }
 
-// CodePipelineClient fetches the CodePipeline Client and enables the cmd to use
-func (ac *Client) CodePipelineClient() codepipelineiface.CodePipelineAPI {
-	return ac.codepipelineClient
-}
-
-// CloudformationClient fetches the CodePipeline Client and enables the cmd to use
-func (ac *Client) CloudformationClient() cloudformationiface.CloudFormationAPI {
+// GetCloudFormationClient returns the client for AWS CloudFormation service.
+func (ac *Client) GetCloudFormationClient() cloudformationiface.CloudFormationAPI {
 	return ac.cloudformationClient
 }

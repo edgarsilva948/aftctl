@@ -25,6 +25,7 @@ type MockS3Client struct {
 	PutPublicAccessBlockFunc  func(input *s3.PutPublicAccessBlockInput) (*s3.PutPublicAccessBlockOutput, error)
 	PutBucketPolicyFunc       func(*s3.PutBucketPolicyInput) (*s3.PutBucketPolicyOutput, error)
 	PutBucketTaggingFunc      func(*s3.PutBucketTaggingInput) (*s3.PutBucketTaggingOutput, error)
+	PutObjectFunc             func(*s3.PutObjectInput) (*s3.PutObjectOutput, error)
 }
 
 // ListBuckets is a mock implementation of the ListBuckets method.

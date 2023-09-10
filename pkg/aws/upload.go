@@ -15,12 +15,18 @@ import (
 	"github.com/edgarsilva948/aftctl/pkg/logging"
 )
 
+// FileReader is a function type that reads a file and returns its content as a byte slice.
+type FileReader func(string) ([]byte, error)
+
+// ReadFile is a variable of type FileReader, initially set to os.ReadFile.
+var ReadFile FileReader = os.ReadFile
+
 const uploadIcon = "⬆️ "
 
 // UploadToS3 to upload the zip file to S3 Bucket
 func UploadToS3(client S3Client, bucketName string, bucketKey string, fileName string) error {
 	// Read the file
-	fileContent, err := os.ReadFile(fileName)
+	fileContent, err := ReadFile(fileName)
 	if err != nil {
 		return fmt.Errorf("failed to read file %w", err)
 	}

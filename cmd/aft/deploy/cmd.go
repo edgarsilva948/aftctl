@@ -339,7 +339,7 @@ func run(cmd *cobra.Command, _ []string) {
 
 	// Ensure the repository is created
 	aws.EnsureCloudformationExists(
-		awsClient.CloudformationClient(),
+		awsClient.GetCloudFormationClient(),
 		interpolatedCloudformationStackName,
 		args.gitSourceRepo,
 		args.gitSourceDescription,
@@ -349,7 +349,7 @@ func run(cmd *cobra.Command, _ []string) {
 
 	// Ensure the Code Build Project is created
 	aws.EnsureCodeBuildProjectExists(
-		awsClient.CodebuildClient(),
+		awsClient.GetCodeBuildClient(),
 		args.aftManagementAccountID,
 		args.codeBuildDockerImage,
 		args.projectName,
@@ -360,7 +360,7 @@ func run(cmd *cobra.Command, _ []string) {
 
 	// Ensure the Code Pipeline Pipe is created
 	aws.EnsureCodePipelineExists(
-		awsClient.CodePipelineClient(),
+		awsClient.GetCodePipelineClient(),
 		args.aftManagementAccountID,
 		args.codePipelineRoleName,
 		args.pipelineName,
