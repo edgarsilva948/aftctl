@@ -46,10 +46,40 @@ theme:
       - content.tabs.link
       - content.code.copy
 
+# Plugins
+plugins:
+  - search
+  - glightbox
+  - minify:
+      minify_html: true
+  - social:
+      cards: true
+      cards_font: Roboto      
+
 extra:
   social:
     - icon: fontawesome/brands/github-alt
       link: https://github.com/edgarsilva948/aftctl
+
+# Extensions
+markdown_extensions:
+  - toc:
+      permalink: true
+  - admonition
+  - codehilite:
+      linenums: true
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - attr_list
+  - md_in_html      
+
+extra_javascript:
+- https://cdn.jsdelivr.net/npm/@glidejs/glide
 
 
 nav:
