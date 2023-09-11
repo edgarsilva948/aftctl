@@ -24,6 +24,6 @@ jobs:
           curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | sh
 
       - name: Run GoReleaser
-        run: ./goreleaser release --clean
+        run: goreleaser release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
