@@ -54,7 +54,8 @@ plugins:
       minify_html: true
   - social:
       cards: true
-      cards_font: Roboto      
+      cards_layout_options:
+        font_family: Roboto      
 
 extra:
   social:
