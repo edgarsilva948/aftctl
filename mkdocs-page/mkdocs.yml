@@ -1,0 +1,36 @@
+site_name: aftctl
+site_description: Facilitates the AFT deployment process
+copyright: Made with ❤️ by aftctl contributors.
+repo_name: edgarsilva948/aftctl
+repo_url: https://github.com/edgarsilva948/aftctl
+
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  language: en
+  logo: static/avatar.png
+  favicon: static/favicon.ico
+  include_search_page: false
+  search_index_only: true
+  palette:
+    - media: "(prefers-color-scheme: light)" 
+      scheme: default
+      toggle:
+        icon: material/lightbulb-outline
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: dark)" 
+      scheme: slate
+      primary: light blue
+      accent: indigo
+      toggle:
+        icon: material/lightbulb
+        name: Switch to dark mode
+  features:
+    - announce.dismiss
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.action.edit
+    - navigation.footer
