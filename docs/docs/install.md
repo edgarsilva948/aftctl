@@ -29,12 +29,12 @@ Optionally, verify the checksum:
 
 1. Download the checksum file: [latest](https://github.com/edgarsilva948/aftctl/releases/latest/download/checksums.txt)
 2. Use Command Prompt to manually compare `CertUtil`'s output to the checksum file downloaded. 
-  ```cmd
-  REM Replace x86_64 with ARM64 or i386
-  CertUtil -hashfile aftctl_Windows_x86_64.zip SHA256
-  ```
+```cmd
+# Replace x86_64 with ARM64 or i386
+CertUtil -hashfile aftctl_Windows_x86_64.zip SHA256
+```
 3. Using PowerShell to automate the verification using the `-eq` operator to get a `True` or `False` result:
 ```pwsh
 # Replace x86_64 with ARM64 or i386
- (Get-FileHash -Algorithm SHA256 .\aftctl_Windows_x86_64.zip).Hash -eq ((Get-Content .\checksums.txt) -match 'aftctl_Windows_x86_64.zip' -split ' ')[0]
- ```
+(Get-FileHash -Algorithm SHA256 .\aftctl_Windows_x86_64.zip).Hash -eq ((Get-Content .\checksums.txt) -match 'aftctl_Windows_x86_64.zip' -split ' ')[0]
+```
