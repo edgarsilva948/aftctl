@@ -15,6 +15,8 @@
   <a href="https://github.com/edgarsilva948/aftctl/actions/workflows/main.yml"><img src="https://github.com/edgarsilva948/aftctl/actions/workflows/main.yml/badge.svg" alt="CI Status"></a>
   <a href="https://codecov.io/gh/edgarsilva948/aftctl"><img src="https://codecov.io/gh/edgarsilva948/aftctl/graph/badge.svg?token=PIGXFII1NG" alt="codecov"></a>
   <a href="https://your-license-link"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="MIT License"></a>
+</a><a href="https://github.com/edgarsilva948/aftctl/releases/latest">
+  <img src="https://img.shields.io/github/release/edgarsilva948/aftctl.svg" alt="release">
 </a>
 
 
