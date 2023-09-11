@@ -34,9 +34,6 @@ theme:
     - content.action.edit
     - navigation.footer
 
-plugins:
-  - search
-  - include-markdown
 
 extra:
   social:
