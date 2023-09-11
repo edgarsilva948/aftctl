@@ -53,8 +53,8 @@ extra:
 
 
 nav:
-  - Home: index.md
-  - Introduction: intro.md
+  - Introduction: introduction.md
   - Installation: install.md
-  - Deploy:
-      - AFT: deploy/aft.md
+  - Usage:
+      - Deploy:
+          - usage/aft.md

@@ -18,13 +18,15 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/edgarsilva948/aftctl)](https://goreportcard.com/report/github.com/edgarsilva948/aftctl) [![codecov](https://codecov.io/gh/edgarsilva948/aftctl/graph/badge.svg?token=PIGXFII1NG)](https://codecov.io/gh/edgarsilva948/aftctl) [![CI](https://github.com/edgarsilva948/aftctl/actions/workflows/main.yml/badge.svg)](https://github.com/edgarsilva948/aftctl/actions/workflows/main.yml)
 
 
-## Get Aftctl
+## Installation
 
-- TBD
+I really recommend that you install `aftctl` from only the official GitHub releases. 
+
+#### Direct download (latest release): [releases page] (https://github.com/edgarsilva948/aftctl/releases)
+
+Make sure to unzip the archive to a folder in the `PATH` variable.
+
 
 ## Documentation
 
-- TBD
-
-
-
+Documentation is hosted live at https://edgarsilva948.github.io/aftctl/
