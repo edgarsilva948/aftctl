@@ -89,4 +89,4 @@ nav:
   - Prerequisites: prereqs.md
   - Usage:
       - Deploy:
-          - usage/aft.md
+          - usage/aft-with-codecommit-and-tf-oss.md
