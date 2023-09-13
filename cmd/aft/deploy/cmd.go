@@ -256,7 +256,7 @@ func init() {
 }
 
 func run(cmd *cobra.Command, _ []string) {
-	awsClient := aws.NewClient()
+	awsClient := aws.NewClient("")
 
 	interpolatedCodeSuiteBucketName := args.aftManagementAccountID + "-" + args.codePipelineBucketName
 	interpolatedTerraformBucketName := args.aftManagementAccountID + "-" + args.terraformStateBucketName

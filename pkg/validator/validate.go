@@ -39,13 +39,12 @@ func CheckTerraformCommand(command string) (bool, error) {
 	// Check if command is accepted
 	for _, acceptedCommand := range acceptedCommands {
 		if command == acceptedCommand {
-			fmt.Println("command accepted")
 			return true, nil
-		} else {
-			fmt.Printf("command is invalid: accepted commands are %s\n", acceptedCommands)
-			return false, err
 		}
+
 	}
 
-	return true, nil
+	fmt.Printf("command is invalid: accepted commands are %s\n", acceptedCommands)
+	return false, err
+
 }
