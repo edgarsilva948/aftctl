@@ -2,6 +2,23 @@
 
 `aftctl` is available to install from official releases as described below. I recommend that you install `aftctl` from only the official GitHub releases.
 
+### For Mac
+To download the latest release, run:
+
+```sh
+# for ARM systems, set ARCH to: `arm64`
+ARCH=x86_64
+
+curl -sLO "https://github.com/edgarsilva948/aftctl/releases/latest/download/aftctl_Darwin_$ARCH.tar.gz"
+
+# (Optional) Verify checksum
+curl -sL "https://github.com/edgarsilva948/aftctl/releases/latest/download/checksums.txt" | grep $ARCH | sha256sum --check
+
+tar -xzf aftctl_Darwin_$ARCH.tar.gz -C /tmp && rm aftctl_Darwin_$ARCH.tar.gz
+
+sudo mv /tmp/aftctl /usr/local/bin
+```
+
 ### For Linux
 To download the latest release, run:
 
