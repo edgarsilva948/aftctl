@@ -20,3 +20,5 @@ aft-deployment.zip
 
 *.cast
 dist/
+
+example-local.sh

@@ -24,6 +24,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
+	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
+	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 )
 
 // S3Client represents a client for Amazon S3.
@@ -69,6 +73,16 @@ type CloudformationClient interface {
 	DescribeStacks(*cloudformation.DescribeStacksInput) (*cloudformation.DescribeStacksOutput, error)
 }
 
+// SSMClient represents a client for SSM.
+type SSMClient interface {
+	GetParameter(*ssm.GetParameterInput) (*ssm.GetParameterOutput, error)
+}
+
+// STSClient represents a client for STS.
+type STSClient interface {
+	AssumeRole(*sts.AssumeRoleInput) (*sts.AssumeRoleOutput, error)
+}
+
 // Client struct implementing all the client interfaces
 type Client struct {
 	s3Client             s3iface.S3API
@@ -77,12 +91,18 @@ type Client struct {
 	codecommitClient     codecommitiface.CodeCommitAPI
 	codebuildClient      codebuildiface.CodeBuildAPI
 	cloudformationClient cloudformationiface.CloudFormationAPI
+	ssmClient            ssmiface.SSMAPI
+	stsClient            stsiface.STSAPI
 }
 
 // NewClient loads credentials following the chain credentials
-func NewClient() *Client {
+func NewClient(profile string) *Client {
 
-	sess, err := session.NewSession()
+	opts := session.Options{
+		Profile: profile,
+	}
+
+	sess, err := session.NewSessionWithOptions(opts)
 
 	if err != nil {
 		fmt.Println(err)
@@ -111,6 +131,8 @@ func NewClient() *Client {
 		codecommitClient:     codecommit.New(sess),
 		codebuildClient:      codebuild.New(sess),
 		cloudformationClient: cloudformation.New(sess),
+		ssmClient:            ssm.New(sess),
+		stsClient:            sts.New(sess),
 	}
 }
 
@@ -142,4 +164,36 @@ func (ac *Client) GetCodeBuildClient() codebuildiface.CodeBuildAPI {
 // GetCloudFormationClient returns the client for AWS CloudFormation service.
 func (ac *Client) GetCloudFormationClient() cloudformationiface.CloudFormationAPI {
 	return ac.cloudformationClient
+}
+
+// GetSSMClient returns the client for AWS SSM service.
+func (ac *Client) GetSSMClient() ssmiface.SSMAPI {
+	return ac.ssmClient
+}
+
+// GetSTSClient returns the client for AWS STS service.
+func (ac *Client) GetSTSClient() stsiface.STSAPI {
+	return ac.stsClient
+}
+
+// GetAWSCredentials returns the AWS credentials for the given profile.
+func GetAWSCredentials(profile string) (string, string, string, error) {
+
+	opts := session.Options{
+		Profile: profile,
+	}
+
+	sess, err := session.NewSessionWithOptions(opts)
+
+	if err != nil {
+		return "", "", "", err
+	}
+
+	creds := sess.Config.Credentials
+	credValue, err := creds.Get()
+	if err != nil {
+		return "", "", "", err
+	}
+
+	return credValue.AccessKeyID, credValue.SecretAccessKey, credValue.SessionToken, nil
 }

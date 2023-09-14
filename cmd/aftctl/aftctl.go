@@ -14,6 +14,7 @@ import (
 	"github.com/edgarsilva948/aftctl/cmd/aft"
 	"github.com/edgarsilva948/aftctl/cmd/completion"
 	"github.com/edgarsilva948/aftctl/cmd/docs"
+	"github.com/edgarsilva948/aftctl/cmd/local"
 	"github.com/edgarsilva948/aftctl/cmd/version"
 
 	"github.com/edgarsilva948/aftctl/pkg/color"
@@ -36,6 +37,7 @@ func init() {
 	root.AddCommand(docs.Cmd)
 	root.AddCommand(version.Cmd)
 	root.AddCommand(aft.Cmd)
+	root.AddCommand(local.Cmd)
 }
 
 func main() {
