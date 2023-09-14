@@ -2,6 +2,7 @@
 Copyright © 2023 Edgar Costa edgarsilva948@gmail.com
 */
 
+// Package local provides the local command
 package local
 
 import (
@@ -18,6 +19,7 @@ import (
 
 	"github.com/edgarsilva948/aftctl/pkg/aws"
 	profile "github.com/edgarsilva948/aftctl/pkg/aws/profiles"
+	"github.com/edgarsilva948/aftctl/pkg/gitignore"
 	"github.com/edgarsilva948/aftctl/pkg/logging"
 	validate "github.com/edgarsilva948/aftctl/pkg/validator"
 	"github.com/flosch/pongo2"
@@ -41,6 +43,8 @@ const (
 
 const assumeRoleIcon = "🔄"
 const profileIcon = "📝"
+const gitIgnoreIcon = "⚙️"
+const terraformIcon = "⛏️ "
 
 var args struct {
 	targetAccount    string
@@ -94,7 +98,7 @@ func Run(cmd *cobra.Command, argv []string) {
 	}
 
 	// client initialization with AFT Credentials
-	message := "Initializing AWS Client using AFT Account credentials... step (1/3)"
+	message := "Initializing AWS Client using AFT Account credentials... step (1/4)"
 	logging.CustomLog(profileIcon, "green", message)
 
 	awsClient := aws.NewClient("")
@@ -174,7 +178,7 @@ func Run(cmd *cobra.Command, argv []string) {
 		fmt.Println("Error setting up profile", err)
 	}
 
-	message = fmt.Sprintf("Successfully set up AWS profile %s-%s Step (2/3)", aftMgmtAccountIDParam, aftAdminRoleNameParam)
+	message = fmt.Sprintf("Successfully set up AWS profile %s-%s Step (2/4)", aftMgmtAccountIDParam, aftAdminRoleNameParam)
 	logging.CustomLog(assumeRoleIcon, "green", message)
 
 	// Assuming the AFT Admin Role in the AFT Account
@@ -237,8 +241,19 @@ func Run(cmd *cobra.Command, argv []string) {
 		}
 	}
 
-	message = fmt.Sprintf("Executing Terraform command %s... (3/3)", args.terraformCommand)
-	logging.CustomLog(profileIcon, "green", message)
+	gitIgnoreGenerated := gitignore.GenerateGitIgnore()
+
+	if !gitIgnoreGenerated {
+		log.Fatalf("error generating .gitignore file")
+	}
+
+	if gitIgnoreGenerated {
+		message = ".gitignore successfully generated... (3/4)"
+		logging.CustomLog(gitIgnoreIcon, "green", message)
+	}
+
+	message = fmt.Sprintf("Executing Terraform command %s... (4/4)", args.terraformCommand)
+	logging.CustomLog(terraformIcon, "green", message)
 
 	terraformCmd := exec.Command("terraform", args.terraformCommand)
 	terraformCmd.Env = append(os.Environ(),

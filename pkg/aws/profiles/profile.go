@@ -6,6 +6,7 @@ Copyright © 2023 Edgar Costa edgarsilva948@gmail.com
 package profile
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -18,6 +19,10 @@ import (
 // SetupProfile creates a new profile for AWS CLI (~/.aws/credentials)
 func SetupProfile(client awsClient.STSClient, accountID string, roleName string, roleSession string) error {
 
+	if client == nil {
+		return errors.New("client is nil")
+	}
+
 	input := &sts.AssumeRoleInput{
 		RoleArn:         aws.String(fmt.Sprintf("arn:aws:iam::%s:role/%s", accountID, roleName)),
 		RoleSessionName: aws.String(roleSession),
@@ -26,6 +31,10 @@ func SetupProfile(client awsClient.STSClient, accountID string, roleName string,
 	result, err := client.AssumeRole(input)
 	if err != nil {
 		return err
+	}
+
+	if result == nil || result.Credentials == nil {
+		return errors.New("result or result.Credentials is nil")
 	}
 
 	// Construct profile name
