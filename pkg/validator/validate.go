@@ -5,8 +5,10 @@ Copyright © 2023 Edgar Costa edgarsilva948@gmail.com
 package validate
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 // CheckAWSAccountID checks if a string represents a valid AWS account id
@@ -28,23 +30,41 @@ func CheckAWSAccountID(accountID string) (bool, error) {
 
 // CheckTerraformCommand checks if a string represents a valid AWS account id
 func CheckTerraformCommand(command string) (bool, error) {
-	var err error
-
-	acceptedCommands := []string{"plan", "apply", "destroy", "init"}
 
 	if command == "" {
-		fmt.Printf("error: terraform command is required\n")
+		return false, errors.New("error: terraform command is required")
 	}
 
-	// Check if command is accepted
+	acceptedCommands := []string{
+		"plan",
+		"apply",
+		"apply --auto-approve",
+		"destroy",
+		"init",
+		"import",
+		"validate",
+		"output",
+		"fmt",
+		"force-unlock",
+		"get",
+		"providers",
+		"refresh",
+		"show",
+		"state",
+		"taint",
+		"untaint",
+		"version",
+		"workspace",
+	}
+
 	for _, acceptedCommand := range acceptedCommands {
-		if command == acceptedCommand {
+		// Check if the beginning of the command string matches an accepted command
+		if strings.HasPrefix(command, acceptedCommand) {
 			return true, nil
 		}
-
 	}
 
 	fmt.Printf("command is invalid: accepted commands are %s\n", acceptedCommands)
-	return false, err
+	return false, errors.New("invalid command")
 
 }

@@ -255,7 +255,8 @@ func Run(cmd *cobra.Command, argv []string) {
 	message = fmt.Sprintf("Executing Terraform command %s... (4/4)", args.terraformCommand)
 	logging.CustomLog(terraformIcon, "green", message)
 
-	terraformCmd := exec.Command("terraform", args.terraformCommand)
+	commandWithArgs := strings.Fields(args.terraformCommand)
+	terraformCmd := exec.Command("terraform", commandWithArgs...)
 	terraformCmd.Env = append(os.Environ(),
 		"AWS_ACCESS_KEY_ID="+accessKey,
 		"AWS_SECRET_ACCESS_KEY="+secretKey,
@@ -267,6 +268,7 @@ func Run(cmd *cobra.Command, argv []string) {
 	terraformCmd.Stderr = &stderr
 
 	err = terraformCmd.Run()
+
 	if err != nil {
 		log.Fatalf("cmd.Run() failed: %s\nStderr: %s", err, stderr.String())
 	}

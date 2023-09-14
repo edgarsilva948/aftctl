@@ -28,7 +28,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
+	"github.com/edgarsilva948/aftctl/pkg/logging"
 )
+
+const profileIcon = "📝"
 
 // S3Client represents a client for Amazon S3.
 type S3Client interface {
@@ -99,7 +102,8 @@ type Client struct {
 func NewClient(profile string) *Client {
 
 	opts := session.Options{
-		Profile: profile,
+		Profile:           profile,
+		SharedConfigState: session.SharedConfigEnable,
 	}
 
 	sess, err := session.NewSessionWithOptions(opts)
@@ -111,6 +115,11 @@ func NewClient(profile string) *Client {
 
 	if sess == nil {
 		log.Fatal("Session is nil")
+	}
+
+	if awsProfile := os.Getenv("AWS_PROFILE"); awsProfile != "" && profile == "" {
+		message := fmt.Sprintf("Using AWS_PROFILE from environment: %s ", awsProfile)
+		logging.CustomLog(profileIcon, "green", message)
 	}
 
 	_, errCreds := sess.Config.Credentials.Get()
