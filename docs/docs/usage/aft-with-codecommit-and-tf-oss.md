@@ -1,4 +1,4 @@
-# Deploying AFT with CodeCommit and Terraform OSS
+# Deploying AFT with AWS CodeCommit and Terraform OSS
 
 ## Deployment
 
@@ -18,9 +18,9 @@ aftctl aft deploy \
 ???+ info
     This documentation is deploying the AFT following the official example found [`here`][AFT Deploy].
 
-[here]: https://github.com/aws-ia/terraform-aws-control_tower_account_factory/blob/main/examples/codecommit%2Btf_oss/main.tf
+[AFT Deploy]: https://github.com/aws-ia/terraform-aws-control_tower_account_factory/blob/main/examples/codecommit%2Btf_oss/main.tf
 
-In cae you want to customize something, this section covers all the available parameters:
+In case you want to customize something, this section covers all the available parameters:
 
 Terraform flags:
 

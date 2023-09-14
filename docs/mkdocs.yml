@@ -86,7 +86,11 @@ extra_javascript:
 nav:
   - Introduction: introduction.md
   - Installation: install.md
-  - Prerequisites: prereqs.md
   - Usage:
       - Deploy:
+          - Prerequisites: usage/deploy-prereqs.md
           - usage/aft-with-codecommit-and-tf-oss.md
+  - Usage:
+      - Local:
+          - Prerequisites: usage/local-prereqs.md
+          - usage/aftctl-local.md
