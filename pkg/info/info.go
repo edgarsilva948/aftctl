@@ -29,8 +29,8 @@ func GetGoVersion() string {
 // BuildCurrentVersion builds and returns the current Version of the tool.
 func BuildCurrentVersion() Version {
 	v := Version{
-		Major:     "1",
-		Minor:     "0",
+		Major:     "0",
+		Minor:     "2",
 		Patch:     "0",
 		GoVersion: GetGoVersion(),
 	}
