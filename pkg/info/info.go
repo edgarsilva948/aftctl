@@ -30,7 +30,7 @@ func GetGoVersion() string {
 func BuildCurrentVersion() Version {
 	v := Version{
 		Major:     "0",
-		Minor:     "2",
+		Minor:     "3",
 		Patch:     "0",
 		GoVersion: GetGoVersion(),
 	}
