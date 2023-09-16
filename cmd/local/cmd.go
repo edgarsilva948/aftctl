@@ -85,8 +85,30 @@ func Run(cmd *cobra.Command, argv []string) {
 		return
 	}
 
+	// Generate the .gitignore file
+	gitIgnoreGenerated := gitignore.GenerateGitIgnore()
+
+	// Check the result of the .gitignore generation
+	if gitIgnoreGenerated {
+		log.Info(".gitignore successfully generated")
+	} else {
+		log.Fatalf("error generating .gitignore file")
+	}
 	// defining the S3 key for the local execution
 	var tfS3Key string
+
+	// getting the current directory
+	pwd, err := os.Getwd()
+	if err != nil {
+		fmt.Println("error getting current directory:", err)
+		return
+	}
+
+	// Call the getTFS3Key function to determine the appropriate S3 key based on the current directory.
+	tfS3Key, err = getTFS3Key(pwd, args.targetAccount)
+	if err != nil {
+		return
+	}
 
 	// Validate input
 	if err := validateInput(); err != nil {
@@ -137,40 +159,6 @@ func Run(cmd *cobra.Command, argv []string) {
 	// Check for KMS Key ID parameter.
 	tfKmsKeyIDParam := params[tfKmsKeyID]
 
-	// getting the current directory
-	pwd, err := os.Getwd()
-	if err != nil {
-		fmt.Println("error getting current directory:", err)
-		return
-	}
-
-	// Call the getTFS3Key function to determine the appropriate S3 key based on the current directory.
-	tfS3Key, err = getTFS3Key(pwd, args.targetAccount)
-	if err != nil {
-		return
-	}
-
-	// setting up the AWS profile for the AFT Account using the user current credentials
-	if err := profile.SetupProfile(awsClient.GetSTSClient(), aftMgmtAccountIDParam, aftAdminRoleNameParam, "AWSAFT-Session"); err != nil {
-		fmt.Println("error setting up profile", err)
-	}
-
-	log.Infof("successfully set up AWS profile %s-%s", aftMgmtAccountIDParam, aftAdminRoleNameParam)
-
-	// Assuming the AFT Admin Role in the AFT Account
-	profileVariable := aftMgmtAccountIDParam + "-" + aftAdminRoleNameParam
-	aws.NewClient(profileVariable)
-	accessKey, secretKey, sessionToken, err := aws.GetAWSCredentials(profileVariable)
-	if err != nil {
-		fmt.Println("error getting AFT Admin credentials")
-	}
-
-	// Set the AWS_PROFILE environment variable
-	err = os.Setenv("AWS_PROFILE", profileVariable)
-	if err != nil {
-		log.Fatalf("error setting env var AWS_PROFILE: %v", err)
-	}
-
 	// calling the function to process Jinja files
 	processJinjaFiles(
 		tfDistributionParam,
@@ -184,14 +172,10 @@ func Run(cmd *cobra.Command, argv []string) {
 		tfKmsKeyIDParam,
 	)
 
-	// Generate the .gitignore file
-	gitIgnoreGenerated := gitignore.GenerateGitIgnore()
-
-	// Check the result of the .gitignore generation
-	if gitIgnoreGenerated {
-		log.Info(".gitignore successfully generated")
-	} else {
-		log.Fatalf("error generating .gitignore file")
+	accessKey, secretKey, sessionToken, err := setupAWSProfileAndAssumeRole(awsClient, aftMgmtAccountIDParam, aftAdminRoleNameParam)
+	if err != nil {
+		log.Errorf("Failed to setup AWS Profile and assume role: %v", err)
+		return
 	}
 
 	// calling the function to execute Terraform command
@@ -354,4 +338,28 @@ func initializeAWSandSSMClients() (*aws.Client, aws.SSMClient, error) {
 	}
 
 	return awsClient, ssmClient, nil
+}
+
+func setupAWSProfileAndAssumeRole(awsClient *aws.Client, aftMgmtAccountIDParam string, aftAdminRoleNameParam string) (string, string, string, error) {
+	// setting up the AWS profile for the AFT Account using the user current credentials
+	if err := profile.SetupProfile(awsClient.GetSTSClient(), aftMgmtAccountIDParam, aftAdminRoleNameParam, "AWSAFT-Session"); err != nil {
+		return "", "", "", fmt.Errorf("error setting up profile: %v", err)
+	}
+
+	log.Infof("successfully set up AWS profile %s-%s", aftMgmtAccountIDParam, aftAdminRoleNameParam)
+
+	// Assuming the AFT Admin Role in the AFT Account
+	profileVariable := aftMgmtAccountIDParam + "-" + aftAdminRoleNameParam
+	aws.NewClient(profileVariable)
+	accessKey, secretKey, sessionToken, err := aws.GetAWSCredentials(profileVariable)
+	if err != nil {
+		return "", "", "", fmt.Errorf("error getting AFT Admin credentials: %v", err)
+	}
+
+	// Set the AWS_PROFILE environment variable
+	if err := os.Setenv("AWS_PROFILE", profileVariable); err != nil {
+		return "", "", "", fmt.Errorf("error setting env var AWS_PROFILE: %v", err)
+	}
+
+	return accessKey, secretKey, sessionToken, nil
 }
