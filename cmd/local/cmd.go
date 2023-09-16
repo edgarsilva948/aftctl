@@ -86,16 +86,18 @@ func Run(cmd *cobra.Command, argv []string) {
 	// defining the S3 key for the local execution
 	var tfS3Key string
 
-	// validate input account ID
+	// Validate input account ID
 	_, err := validate.CheckAWSAccountID(args.targetAccount)
 	if err != nil {
-		os.Exit(1)
+		log.Fatalf("invalid AWS Account ID: %v", err)
+		return
 	}
 
-	// validate input terraform command
+	// Validate input terraform command
 	_, err = validate.CheckTerraformCommand(args.terraformCommand)
 	if err != nil {
-		os.Exit(1)
+		log.Fatalf("invalid Terraform command: %v", err)
+		return
 	}
 
 	// Define an array of SSM parameter keys that we need to fetch.
@@ -141,7 +143,7 @@ func Run(cmd *cobra.Command, argv []string) {
 	// Check for KMS Key ID parameter.
 	tfKmsKeyIDParam := params[tfKmsKeyID]
 
-	// check if the current directory is aft-account-customizations or aft-global-customizations
+	// getting the current directory
 	pwd, err := os.Getwd()
 	if err != nil {
 		fmt.Println("error getting current directory:", err)
