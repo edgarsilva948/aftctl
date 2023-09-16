@@ -172,6 +172,7 @@ func Run(cmd *cobra.Command, argv []string) {
 		tfKmsKeyIDParam,
 	)
 
+	// setup the AWS Profile and Assume Role
 	accessKey, secretKey, sessionToken, err := setupAWSProfileAndAssumeRole(awsClient, aftMgmtAccountIDParam, aftAdminRoleNameParam)
 	if err != nil {
 		log.Errorf("Failed to setup AWS Profile and assume role: %v", err)
