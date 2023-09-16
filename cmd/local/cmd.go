@@ -79,24 +79,18 @@ var Cmd = &cobra.Command{
 func Run(cmd *cobra.Command, argv []string) {
 
 	// client initialization with AFT Credentials
-	log.Info("initializing AWS Client using AFT Account credentials")
-	awsClient := aws.NewClient("")
-	ssmClient := awsClient.GetSSMClient()
+	awsClient, ssmClient, err := initializeAWSandSSMClients()
+	if err != nil {
+		log.Errorf("error initializing AWS and SSM Clients: %v", err)
+		return
+	}
 
 	// defining the S3 key for the local execution
 	var tfS3Key string
 
-	// Validate input account ID
-	_, err := validate.CheckAWSAccountID(args.targetAccount)
-	if err != nil {
-		log.Fatalf("invalid AWS Account ID: %v", err)
-		return
-	}
-
-	// Validate input terraform command
-	_, err = validate.CheckTerraformCommand(args.terraformCommand)
-	if err != nil {
-		log.Fatalf("invalid Terraform command: %v", err)
+	// Validate input
+	if err := validateInput(); err != nil {
+		log.Errorf("Validation failed: %v", err)
 		return
 	}
 
@@ -333,4 +327,31 @@ func processJinjaFiles(
 	}
 
 	return nil
+}
+
+func validateInput() error {
+	_, err := validate.CheckAWSAccountID(args.targetAccount)
+	if err != nil {
+		return fmt.Errorf("invalid AWS Account ID: %w", err)
+	}
+	_, err = validate.CheckTerraformCommand(args.terraformCommand)
+	if err != nil {
+		return fmt.Errorf("invalid Terraform Command: %w", err)
+	}
+	return nil
+}
+
+func initializeAWSandSSMClients() (*aws.Client, aws.SSMClient, error) {
+	log.Info("initializing AWS Client using AFT Account credentials")
+	awsClient := aws.NewClient("")
+	if awsClient == nil {
+		return nil, nil, fmt.Errorf("failed to initialize AWS client")
+	}
+
+	ssmClient := awsClient.GetSSMClient()
+	if ssmClient == nil {
+		return nil, nil, fmt.Errorf("failed to initialize SSM client")
+	}
+
+	return awsClient, ssmClient, nil
 }
