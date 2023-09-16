@@ -114,76 +114,32 @@ func Run(cmd *cobra.Command, argv []string) {
 	// Fetch the SSM parameters based on the keys defined above.
 	params := getSSMParameters(ssmClient, ssmKeys)
 
-	// Check if fetching the parameters was successful.
-	if err != nil {
-		log.Fatalf("failed to get SSM Parameters: %v", err)
-		os.Exit(1)
-	}
-
-	// Validate that each parameter key has a value.
-
 	// Check for DynamoDB table name parameter.
-	tfDynamoDBTableNameParam, ok := params[tfDynamoDBTableName]
-	if !ok {
-		log.Fatalf("tfDynamoDBTableName is missing from SSM parameters")
-		os.Exit(1)
-	}
+	tfDynamoDBTableNameParam := params[tfDynamoDBTableName]
 
 	// Check for Management Account ID parameter.
-	aftMgmtAccountIDParam, ok := params[aftMgmtAccountID]
-	if !ok {
-		log.Fatalf("aftMgmtAccountID is missing from SSM parameters")
-		os.Exit(1)
-	}
+	aftMgmtAccountIDParam := params[aftMgmtAccountID]
 
 	// Check for Admin Role Name parameter.
-	aftAdminRoleNameParam, ok := params[aftAdminRoleName]
-	if !ok {
-		log.Fatalf("aftAdminRoleName is missing from SSM parameters")
-		os.Exit(1)
-	}
+	aftAdminRoleNameParam := params[aftAdminRoleName]
 
 	// Check for Distribution Type parameter.
-	tfDistributionParam, ok := params[tfDistribution]
-	if !ok {
-		log.Fatalf("tfDistribution is missing from SSM parameters")
-		os.Exit(1)
-	}
+	tfDistributionParam := params[tfDistribution]
 
 	// Check for Management Region parameter.
-	ctMgmtRegionParam, ok := params[ctMgmtRegion]
-	if !ok {
-		log.Fatalf("ctMgmtRegion is missing from SSM parameters")
-		os.Exit(1)
-	}
+	ctMgmtRegionParam := params[ctMgmtRegion]
 
 	// Check for Backend Region parameter.
-	tfBackendRegionParam, ok := params[tfBackendRegion]
-	if !ok {
-		log.Fatalf("tfBackendRegion is missing from SSM parameters")
-		os.Exit(1)
-	}
+	tfBackendRegionParam := params[tfBackendRegion]
 
 	// Check for Execution Role Name parameter.
-	aftExecutionRoleNameParam, ok := params[aftExecutionRoleName]
-	if !ok {
-		log.Fatalf("aftExecutionRoleName is missing from SSM parameters")
-		os.Exit(1)
-	}
+	aftExecutionRoleNameParam := params[aftExecutionRoleName]
 
 	// Check for S3 Bucket ID parameter.
-	tfS3BucketIDParam, ok := params[tfS3BucketID]
-	if !ok {
-		log.Fatalf("tfS3BucketID is missing from SSM parameters")
-		os.Exit(1)
-	}
+	tfS3BucketIDParam := params[tfS3BucketID]
 
 	// Check for KMS Key ID parameter.
-	tfKmsKeyIDParam, ok := params[tfKmsKeyID]
-	if !ok {
-		log.Fatalf("tfKmsKeyID is missing from SSM parameters")
-		os.Exit(1)
-	}
+	tfKmsKeyIDParam := params[tfKmsKeyID]
 
 	// check if the current directory is aft-account-customizations or aft-global-customizations
 	pwd, err := os.Getwd()
@@ -253,7 +209,10 @@ func getSSMParameters(client aws.SSMClient, paramKeys []string) map[string]strin
 
 	for _, key := range paramKeys {
 		param, err := aws.GetSSMParameter(client, key)
-		handleError(err, "failed to get SSM Parameter")
+		if err != nil {
+			handleError(err, "failed to get SSM Parameter for key: "+key)
+			return nil
+		}
 		params[key] = param
 	}
 
