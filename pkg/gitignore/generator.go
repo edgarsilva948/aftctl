@@ -17,7 +17,8 @@ func GenerateGitIgnore() bool {
 		"aft-input.auto.tfvars",
 		"aft-providers.tf",
 		"backend.tf",
-		"locals.tf",
+		".gitignore",
+		".terraform*",
 	}
 
 	// Join the list into a single string with newlines

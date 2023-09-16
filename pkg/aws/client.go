@@ -7,8 +7,9 @@ package aws
 
 import (
 	"fmt"
-	"log"
 	"os"
+
+	"github.com/caarlos0/log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -28,10 +29,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
-	"github.com/edgarsilva948/aftctl/pkg/logging"
 )
-
-const profileIcon = "📝"
 
 // S3Client represents a client for Amazon S3.
 type S3Client interface {
@@ -108,29 +106,46 @@ func NewClient(profile string) *Client {
 
 	sess, err := session.NewSessionWithOptions(opts)
 
+	// Check for session initialization error
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("error creating session:", err)
 		os.Exit(1)
 	}
 
+	// Check for a nil session
 	if sess == nil {
-		log.Fatal("Session is nil")
+		log.Fatal("session is nil")
+		os.Exit(1)
 	}
 
-	if awsProfile := os.Getenv("AWS_PROFILE"); awsProfile != "" && profile == "" {
-		message := fmt.Sprintf("Using AWS_PROFILE from environment: %s ", awsProfile)
-		logging.CustomLog(profileIcon, "green", message)
+	// Check for a nil Config
+	if sess.Config == nil {
+		log.Fatal("invalid session configuration")
+		os.Exit(1)
 	}
 
+	// Check for nil Credentials
+	if sess.Config.Credentials == nil {
+		log.Fatal("invalid session credentials")
+		os.Exit(1)
+	}
+
+	// Check for credential errors
 	_, errCreds := sess.Config.Credentials.Get()
 	if errCreds != nil {
-		fmt.Println(errCreds)
+		fmt.Println("credential error:", errCreds)
 		os.Exit(1)
 	}
 
+	// Check for an unset AWS region
 	if aws.StringValue(sess.Config.Region) == "" {
-		fmt.Println("Region is not set.")
+		fmt.Println("region is not set.")
 		os.Exit(1)
+	}
+
+	// Check for an unset aws default profile and a profile set in the environment variable
+	if awsProfile := os.Getenv("AWS_PROFILE"); awsProfile != "" && profile == "" {
+		log.WithField("profile", awsProfile).Info("using AWS_PROFILE environment variable")
 	}
 
 	return &Client{

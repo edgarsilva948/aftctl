@@ -11,7 +11,6 @@ import (
 	"os/exec"
 	"time"
 
-	"log"
 	"os"
 
 	"path/filepath"
@@ -20,9 +19,10 @@ import (
 	"github.com/edgarsilva948/aftctl/pkg/aws"
 	profile "github.com/edgarsilva948/aftctl/pkg/aws/profiles"
 	"github.com/edgarsilva948/aftctl/pkg/gitignore"
-	"github.com/edgarsilva948/aftctl/pkg/logging"
 	validate "github.com/edgarsilva948/aftctl/pkg/validator"
 	"github.com/flosch/pongo2"
+
+	"github.com/caarlos0/log"
 
 	"github.com/spf13/cobra"
 )
@@ -40,11 +40,6 @@ const (
 	tfS3BucketID         = "/aft/config/oss-backend/bucket-id"
 	tfVarFile            = "aft-input.auto.tfvars"
 )
-
-const assumeRoleIcon = "🔄"
-const profileIcon = "📝"
-const gitIgnoreIcon = "⚙️"
-const terraformIcon = "⛏️ "
 
 var args struct {
 	targetAccount    string
@@ -98,9 +93,7 @@ func Run(cmd *cobra.Command, argv []string) {
 	}
 
 	// client initialization with AFT Credentials
-	message := "Initializing AWS Client using AFT Account credentials... step (1/4)"
-	logging.CustomLog(profileIcon, "green", message)
-
+	log.Info("Initializing AWS Client using AFT Account credentials")
 	awsClient := aws.NewClient("")
 
 	aftMgmtAccountIDParam, err := aws.GetSSMParameter(awsClient.GetSSMClient(), aftMgmtAccountID)
@@ -178,8 +171,7 @@ func Run(cmd *cobra.Command, argv []string) {
 		fmt.Println("Error setting up profile", err)
 	}
 
-	message = fmt.Sprintf("Successfully set up AWS profile %s-%s Step (2/4)", aftMgmtAccountIDParam, aftAdminRoleNameParam)
-	logging.CustomLog(assumeRoleIcon, "green", message)
+	log.Infof("Successfully set up AWS profile %s-%s", aftMgmtAccountIDParam, aftAdminRoleNameParam)
 
 	// Assuming the AFT Admin Role in the AFT Account
 	profileVariable := aftMgmtAccountIDParam + "-" + aftAdminRoleNameParam
@@ -248,12 +240,12 @@ func Run(cmd *cobra.Command, argv []string) {
 	}
 
 	if gitIgnoreGenerated {
-		message = ".gitignore successfully generated... (3/4)"
-		logging.CustomLog(gitIgnoreIcon, "green", message)
+
+		log.Info(".gitignore successfully generated")
+
 	}
 
-	message = fmt.Sprintf("Executing Terraform command %s... (4/4)", args.terraformCommand)
-	logging.CustomLog(terraformIcon, "green", message)
+	log.WithField("command", args.terraformCommand).Info("Executing Terraform command")
 
 	commandWithArgs := strings.Fields(args.terraformCommand)
 	terraformCmd := exec.Command("terraform", commandWithArgs...)

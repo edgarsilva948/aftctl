@@ -1,14 +1,21 @@
-# This is an example .goreleaser.yml file with some sensible defaults.
-# Make sure to check the documentation at https://goreleaser.com
-project_name: aftctl
-release:
-  github:
-    owner: edgarsilva948
-    name: aftctl
+env:
+  - GO111MODULE=on
+
 before:
   hooks:
     - go mod tidy
-    - go generate ./...
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"    
+
+gomod:
+  proxy: true
+
+report_sizes: true
+
+metadata:
+  mod_timestamp: "{{ .CommitTimestamp }}"
+
 builds:
   - main: ./cmd/aftctl/
     env:
@@ -17,6 +24,45 @@ builds:
       - linux
       - windows
       - darwin
+    mod_timestamp: "{{ .CommitTimestamp }}"
+
+checksum:
+  name_template: 'checksums.txt'
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^test:"
+      - "^chore"
+      - "merge conflict"
+      - Merge pull request
+      - Merge remote-tracking branch
+      - Merge branch
+      - go mod tidy
+  groups:
+    - title: Dependency updates
+      regexp: '^.*?(feat|fix)\(deps\)!?:.+$'
+      order: 300
+    - title: "New Features"
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 100
+    - title: "Security updates"
+      regexp: '^.*?sec(\([[:word:]]+\))??!?:.+$'
+      order: 150
+    - title: "Bug fixes"
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 200
+    - title: "Documentation updates"
+      regexp: ^.*?doc(\([[:word:]]+\))??!?:.+$
+      order: 400
+    - title: "Build process updates"
+      regexp: ^.*?build(\([[:word:]]+\))??!?:.+$
+      order: 400
+    - title: Other work
+      order: 9999      
+
 
 archives:
   - format: tar.gz
@@ -31,13 +77,12 @@ archives:
     format_overrides:
     - goos: windows
       format: zip
-checksum:
-  name_template: 'checksums.txt'
-snapshot:
-  name_template: "{{ incpatch .Version }}-next"
-changelog:
-  sort: asc
-  filters:
-    exclude:
-      - '^docs:'
-      - '^test:'
+
+release:
+  name_template: "v{{ .Version }}"
+  footer: |
+    ## Where to go next?
+
+    * Refer to the documentation [docs](https://edgarsilva948.github.io/aftctl/).
+
+    <a href="https://edgarsilva948.github.io/aftctl/"><img src="https://raw.githubusercontent.com/edgarsilva948/aftctl/main/assets/images/gopher-releases-page.png" with="100%" alt="aftctl background"></a>
